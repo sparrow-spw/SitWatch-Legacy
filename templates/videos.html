@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 bg-[#f9f9f9]">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-[#333] mb-2">Videolar</h1>
+        <div class="h-1 w-20 bg-[#167ac6]"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="border-b border-[#e8e8e8] px-5 py-3 flex items-center">
+                <i class="fas fa-eye mr-2 text-[#167ac6]"></i>
+                <h2 class="text-[15px] font-bold text-[#333]">Şu Anda İzlenen</h2>
+            </div>
+            <div class="p-4">
+                {% if currently_watching %}
+                    <div class="space-y-4">
+                        {% for video in currently_watching %}
+                            {% if video.is_visible %}
+                            <div class="flex gap-4 group hover:bg-[#f8f9fa] p-2 rounded-lg transition-colors duration-200">
+                                <a href="{{ url_for('watch', video_id=video.id) }}" class="flex-shrink-0 relative">
+                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                         alt="{{ video.title }}"
+                                         class="w-[120px] h-[68px] object-cover rounded-md">
+                                    <div class="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] px-1 rounded">
+                                        {{ video.active_viewers }} izleyici
+                                    </div>
+                                </a>
+                                <div>
+                                    <h3 class="text-[13px] font-medium leading-tight mb-1">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6] group-hover:underline">
+                                            {{ video.title }}
+                                        </a>
+                                    </h3>
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[11px] text-[#666] hover:text-[#167ac6] flex items-center gap-1">
+                                        <i class="fas fa-user-circle text-[#999]"></i>
+                                        {{ video.uploader.username }}
+                                    </a>
+                                    <div class="text-[11px] text-[#666] mt-1 flex items-center gap-1">
+                                        <i class="fas fa-circle text-[6px] text-[#28a745]"></i>
+                                        Canlı
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-video-slash text-[#ddd] text-4xl mb-3"></i>
+                        <p class="text-[13px] text-[#666]">Şu anda izlenen video bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="border-b border-[#e8e8e8] px-5 py-3 flex items-center">
+                <i class="fas fa-fire mr-2 text-[#ff4d4d]"></i>
+                <h2 class="text-[15px] font-bold text-[#333]">En Popüler</h2>
+            </div>
+            <div class="p-4">
+                {% if popular_videos %}
+                    <div class="space-y-4">
+                        {% for video in popular_videos %}
+                            {% if video.is_visible %}
+                            <div class="flex gap-4 group hover:bg-[#f8f9fa] p-2 rounded-lg transition-colors duration-200">
+                                <a href="{{ url_for('watch', video_id=video.id) }}" class="flex-shrink-0 relative">
+                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                         alt="{{ video.title }}"
+                                         class="w-[120px] h-[68px] object-cover rounded-md">
+                                    <div class="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] px-1 rounded">
+                                        {{ video.views }} görüntüleme
+                                    </div>
+                                </a>
+                                <div>
+                                    <h3 class="text-[13px] font-medium leading-tight mb-1">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6] group-hover:underline">
+                                            {{ video.title }}
+                                        </a>
+                                    </h3>
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[11px] text-[#666] hover:text-[#167ac6] flex items-center gap-1">
+                                        <i class="fas fa-user-circle text-[#999]"></i>
+                                        {{ video.uploader.username }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-chart-line text-[#ddd] text-4xl mb-3"></i>
+                        <p class="text-[13px] text-[#666]">Henüz video bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="border-b border-[#e8e8e8] px-5 py-3 flex items-center">
+                <i class="fas fa-clock mr-2 text-[#4CAF50]"></i>
+                <h2 class="text-[15px] font-bold text-[#333]">En Son Yüklenen</h2>
+            </div>
+            <div class="p-4">
+                {% if latest_videos %}
+                    <div class="space-y-4">
+                        {% for video in latest_videos %}
+                            {% if video.is_visible %}
+                            <div class="flex gap-4 group hover:bg-[#f8f9fa] p-2 rounded-lg transition-colors duration-200">
+                                <a href="{{ url_for('watch', video_id=video.id) }}" class="flex-shrink-0 relative">
+                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                         alt="{{ video.title }}"
+                                         class="w-[120px] h-[68px] object-cover rounded-md">
+                                </a>
+                                <div>
+                                    <h3 class="text-[13px] font-medium leading-tight mb-1">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6] group-hover:underline">
+                                            {{ video.title }}
+                                        </a>
+                                    </h3>
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[11px] text-[#666] hover:text-[#167ac6] flex items-center gap-1">
+                                        <i class="fas fa-user-circle text-[#999]"></i>
+                                        {{ video.uploader.username }}
+                                    </a>
+                                    <div class="text-[11px] text-[#666] mt-1">
+                                        {{ video.upload_date.strftime('%d.%m.%Y') }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-clock text-[#ddd] text-4xl mb-3"></i>
+                        <p class="text-[13px] text-[#666]">Henüz video bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="border-b border-[#e8e8e8] px-5 py-3 flex items-center">
+                <i class="fas fa-heart mr-2 text-[#E91E63]"></i>
+                <h2 class="text-[15px] font-bold text-[#333]">En Çok Beğenilen</h2>
+            </div>
+            <div class="p-4">
+                {% if most_liked_videos %}
+                    <div class="space-y-4">
+                        {% for video in most_liked_videos %}
+                            {% if video.is_visible %}
+                            <div class="flex gap-4 group hover:bg-[#f8f9fa] p-2 rounded-lg transition-colors duration-200">
+                                <a href="{{ url_for('watch', video_id=video.id) }}" class="flex-shrink-0 relative">
+                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                         alt="{{ video.title }}"
+                                         class="w-[120px] h-[68px] object-cover rounded-md">
+                                    <div class="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] px-1 rounded">
+                                        {{ video.likes }} beğeni
+                                    </div>
+                                </a>
+                                <div>
+                                    <h3 class="text-[13px] font-medium leading-tight mb-1">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6] group-hover:underline">
+                                            {{ video.title }}
+                                        </a>
+                                    </h3>
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[11px] text-[#666] hover:text-[#167ac6] flex items-center gap-1">
+                                        <i class="fas fa-user-circle text-[#999]"></i>
+                                        {{ video.uploader.username }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-heart text-[#ddd] text-4xl mb-3"></i>
+                        <p class="text-[13px] text-[#666]">Henüz video bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="border-b border-[#e8e8e8] px-5 py-3 flex items-center">
+                <i class="fas fa-comments mr-2 text-[#2196F3]"></i>
+                <h2 class="text-[15px] font-bold text-[#333]">En Çok Yorumlanan</h2>
+            </div>
+            <div class="p-4">
+                {% if most_commented_videos %}
+                    <div class="space-y-4">
+                        {% for video in most_commented_videos %}
+                            {% if video.is_visible %}
+                            <div class="flex gap-4 group hover:bg-[#f8f9fa] p-2 rounded-lg transition-colors duration-200">
+                                <a href="{{ url_for('watch', video_id=video.id) }}" class="flex-shrink-0 relative">
+                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                         alt="{{ video.title }}"
+                                         class="w-[120px] h-[68px] object-cover rounded-md">
+                                    <div class="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] px-1 rounded">
+                                        {{ video.get_comment_count() }} yorum
+                                    </div>
+                                </a>
+                                <div>
+                                    <h3 class="text-[13px] font-medium leading-tight mb-1">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6] group-hover:underline">
+                                            {{ video.title }}
+                                        </a>
+                                    </h3>
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[11px] text-[#666] hover:text-[#167ac6] flex items-center gap-1">
+                                        <i class="fas fa-user-circle text-[#999]"></i>
+                                        {{ video.uploader.username }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-comments text-[#ddd] text-4xl mb-3"></i>
+                        <p class="text-[13px] text-[#666]">Henüz video bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="border-b border-[#e8e8e8] px-5 py-3 flex items-center">
+                <i class="fas fa-chart-line mr-2 text-[#9C27B0]"></i>
+                <h2 class="text-[15px] font-bold text-[#333]">Trend Videolar</h2>
+            </div>
+            <div class="p-4">
+                {% if trending_videos %}
+                    <div class="space-y-4">
+                        {% for video in trending_videos %}
+                            {% if video.is_visible %}
+                            <div class="flex gap-4 group hover:bg-[#f8f9fa] p-2 rounded-lg transition-colors duration-200">
+                                <a href="{{ url_for('watch', video_id=video.id) }}" class="flex-shrink-0 relative">
+                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                         alt="{{ video.title }}"
+                                         class="w-[120px] h-[68px] object-cover rounded-md">
+                                    <div class="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] px-1 rounded">
+                                        Trend #{{ loop.index }}
+                                    </div>
+                                </a>
+                                <div>
+                                    <h3 class="text-[13px] font-medium leading-tight mb-1">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6] group-hover:underline">
+                                            {{ video.title }}
+                                        </a>
+                                    </h3>
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[11px] text-[#666] hover:text-[#167ac6] flex items-center gap-1">
+                                        <i class="fas fa-user-circle text-[#999]"></i>
+                                        {{ video.uploader.username }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-chart-line text-[#ddd] text-4xl mb-3"></i>
+                        <p class="text-[13px] text-[#666]">Henüz video bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

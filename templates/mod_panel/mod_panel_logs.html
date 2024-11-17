@@ -1,0 +1,56 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}İşlem Kayıtları{% endblock %}
+
+{% block panel_content %}
+<div class="p-6">
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-[#f0f0f0] text-[12px] text-[#666] uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium">Tarih</th>
+                        <th class="px-4 py-3 text-left font-medium">Admin</th>
+                        <th class="px-4 py-3 text-left font-medium">İşlem</th>
+                        <th class="px-4 py-3 text-left font-medium">Hedef</th>
+                        <th class="px-4 py-3 text-left font-medium">Detaylar</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[13px]">
+                    {% for log in logs %}
+                    <tr class="border-t border-[#e8e8e8] hover:bg-[#f8f8f8]">
+                        <td class="px-4 py-3 text-[#666]">{{ log.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td class="px-4 py-3">{{ log.admin.username }}</td>
+                        <td class="px-4 py-3">
+                            {% if log.action_type == 'ban' %}
+                                <span class="text-red-600">Kullanıcı Banı</span>
+                            {% elif log.action_type == 'unban' %}
+                                <span class="text-green-600">Ban Kaldırma</span>
+                            {% elif log.action_type == 'delete_video' %}
+                                <span class="text-red-600">Video Silme</span>
+                            {% elif log.action_type == 'approve_video' %}
+                                <span class="text-green-600">Video Onaylama</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if log.target_user %}
+                                <a href="{{ url_for('profile', username=log.target_user.username) }}" 
+                                   class="text-[#167ac6] hover:text-[#2793e6]">
+                                    {{ log.target_user.username }}
+                                </a>
+                            {% elif log.target_video %}
+                                <a href="{{ url_for('watch', video_id=log.target_video.id) }}"
+                                   class="text-[#167ac6] hover:text-[#2793e6]">
+                                    {{ log.target_video.title }}
+                                </a>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-[#666]">{{ log.details }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

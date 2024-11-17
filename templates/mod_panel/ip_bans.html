@@ -1,0 +1,131 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}IP Banları{% endblock %}
+
+{% block panel_content %}
+<div class="p-6">
+    <!-- IP Ban Formu -->
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4 mb-6">
+        <h2 class="text-[16px] font-bold text-[#333] mb-4">IP Adresi Banla</h2>
+        
+        <form id="ipBanForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="text-[12px] text-[#666] block mb-1">IP Adresi</label>
+                    <input type="text" 
+                           name="ip" 
+                           required
+                           placeholder="1.2.3.4"
+                           pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+                           class="w-full px-3 py-2 text-[13px] border border-[#e8e8e8] rounded">
+                </div>
+                
+                <div>
+                    <label class="text-[12px] text-[#666] block mb-1">Süre (Gün)</label>
+                    <input type="number" 
+                           name="duration" 
+                           min="1"
+                           placeholder="Süresiz için boş bırakın"
+                           class="w-full px-3 py-2 text-[13px] border border-[#e8e8e8] rounded">
+                </div>
+                
+                <div>
+                    <label class="text-[12px] text-[#666] block mb-1">Sebep</label>
+                    <input type="text" 
+                           name="reason" 
+                           required
+                           placeholder="Ban sebebi"
+                           class="w-full px-3 py-2 text-[13px] border border-[#e8e8e8] rounded">
+                </div>
+            </div>
+            
+            <button type="submit" 
+                    class="px-4 py-2 bg-red-500 text-white text-[13px] rounded hover:bg-red-600">
+                IP Adresini Banla
+            </button>
+        </form>
+    </div>
+    
+    <!-- Ban Listesi -->
+    <div class="bg-white border border-[#e8e8e8] rounded-lg">
+        <div class="border-b border-[#e8e8e8] p-4">
+            <h2 class="text-[16px] font-bold text-[#333]">Aktif IP Banları</h2>
+        </div>
+        
+        <div class="divide-y divide-[#e8e8e8]">
+            {% for ban in bans %}
+            {% if ban.is_active and not ban.is_expired %}
+            <div class="p-4 flex items-center justify-between">
+                <div>
+                    <div class="text-[14px] font-medium">{{ ban.ip_address }}</div>
+                    <div class="text-[12px] text-[#666]">
+                        <span class="font-medium">Sebep:</span> {{ ban.reason }}
+                    </div>
+                    <div class="text-[11px] text-[#666] mt-1">
+                        <span>{{ ban.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                        {% if ban.expiry_date %}
+                        <span class="mx-1">-</span>
+                        <span>{{ ban.expiry_date.strftime('%d.%m.%Y %H:%M') }}</span>
+                        {% else %}
+                        <span class="mx-1">-</span>
+                        <span>Süresiz</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <button onclick="unbanIP({{ ban.id }})"
+                        class="px-4 py-2 bg-green-500 text-white text-[13px] rounded hover:bg-green-600">
+                    Banı Kaldır
+                </button>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('ipBanForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/mod_panel/ban_ip', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+});
+
+function unbanIP(banId) {
+    if (confirm('Bu IP adresinin banını kaldırmak istediğinizden emin misiniz?')) {
+        fetch(`/mod_panel/unban_ip/${banId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+    }
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,521 @@
+{% extends 'base.html' %}
+
+{% block title %}Video Yükle{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 flex flex-col lg:flex-row gap-4">
+    <div class="lg:w-3/4">
+        <div class="bg-white border border-[#e8e8e8] rounded">
+            <div class="border-b border-[#e8e8e8] px-4 py-2">
+                <h2 class="text-[14px] font-bold text-[#333]">Video Yükle</h2>
+            </div>
+            <div class="p-4">
+                <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="video" class="block text-[12px] text-[#666] mb-1">Video Dosyası</label>
+                            <input type="file" id="video" name="video" accept="video/*" required
+                                   class="w-full text-[12px] border border-[#ccc] rounded p-2">
+                        </div>
+
+                        <div>
+                            <label for="title" class="block text-[12px] text-[#666] mb-1">Başlık</label>
+                            <input type="text" id="title" name="title" required
+                                   class="w-full text-[12px] border border-[#ccc] rounded p-2">
+                        </div>
+
+                        <div>
+                            <label for="description" class="block text-[12px] text-[#666] mb-1">Açıklama</label>
+                            <textarea id="description" name="description" rows="4"
+                                    class="w-full text-[12px] border border-[#ccc] rounded p-2"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="thumbnail" class="block text-[12px] text-[#666] mb-1">Thumbnail (İsteğe bağlı)</label>
+                            <input type="file" id="thumbnail" name="thumbnail" accept="image/jpeg,image/jpg,image/png"
+                                   class="w-full text-[12px] border border-[#ccc] rounded p-2">
+                        </div>
+
+                        <div class="upload-progress" style="display: none;">
+                            <div class="progress">
+                                <div id="progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div id="progress-text">0MB / 0MB (0%) - 0 MB/s</div>
+                            <div id="file-size"></div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-[#167ac6] text-white text-[12px] py-2 rounded hover:bg-[#1370bd] transition-colors">
+                            Yayınla
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:w-1/4">
+        <div class="bg-white border border-[#e8e8e8] rounded mb-4">
+            <div class="border-b border-[#e8e8e8] px-4 py-2">
+                <h2 class="text-[14px] font-bold text-[#333]">Yükleme Durumu</h2>
+            </div>
+            <div class="p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-[12px] text-[#666]">
+                        <span>Son 5 saatte yüklenen:</span>
+                        <span>{{ upload_count }} / 3</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[12px] text-[#666]">
+                        <span>Kalan yükleme hakkı:</span>
+                        <span class="font-bold {% if remaining_uploads == 0 %}text-red-500{% else %}text-green-500{% endif %}">
+                            {{ remaining_uploads }}
+                        </span>
+                    </div>
+                    {% if remaining_uploads == 0 and not current_user.is_admin %}
+                        <div class="text-[11px] text-red-500 mt-2">
+                            5 saatte en fazla 3 video yükleyebilirsiniz.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-[#e8e8e8] rounded">
+            <div class="border-b border-[#e8e8e8] px-4 py-2">
+                <h2 class="text-[14px] font-bold text-[#333]">Yükleme Kuralları</h2>
+            </div>
+            <div class="p-4">
+                <div class="space-y-3">
+                    <div class="flex items-start gap-2 text-[12px] text-[#666]">
+                        <i class="fas fa-exclamation-circle text-[#ff6b6b] mt-0.5"></i>
+                        <span>Video boyutu 500MB'ı geçmemelidir.</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-[12px] text-[#666]">
+                        <i class="fas fa-exclamation-circle text-[#ff6b6b] mt-0.5"></i>
+                        <span>Uygunsuz içerik yüklemek hesabınızın kalıcı olarak kapatılmasına neden olur.</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-[12px] text-[#666]">
+                        <i class="fas fa-exclamation-circle text-[#ff6b6b] mt-0.5"></i>
+                        <span>Telif hakkı ihlali yapan içerikler kaldırılır ve yasal işlem başlatılabilir.</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-[12px] text-[#666]">
+                        <i class="fas fa-exclamation-circle text-[#ff6b6b] mt-0.5"></i>
+                        <span>Spam içerikli videolar silinir ve hesabınız geçici olarak askıya alınır.</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-[12px] text-[#666]">
+                        <i class="fas fa-clock text-[#ff6b6b] mt-0.5"></i>
+                        <span>Videolar yöneticiler onayından sonra yayınlanır.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.upload-layout {
+    display: flex;
+    gap: 30px;
+}
+
+.upload-container {
+    flex: 2;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.rules-container {
+    flex: 1;
+    background: #1a1a1a;
+    color: #ff3333;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+}
+
+.rules-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ff3333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rules-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.rule-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #2a2a2a;
+    border-left: 4px solid #ff3333;
+    transition: all 0.3s ease;
+}
+
+.rule-item:hover {
+    transform: translateX(5px);
+    background: #333;
+}
+
+.rule-item i {
+    font-size: 1.2em;
+    color: #ff3333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress {
+    height: 100%;
+    background-color: #1a73e8;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.upload-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.upload-button:hover {
+    background-color: #1557b0;
+}
+
+@media (max-width: 768px) {
+    .upload-layout {
+        flex-direction: column;
+    }
+    
+    .rules-container {
+        margin-top: 20px;
+    }
+}
+
+/* Progress bar animasyonları */
+@keyframes glow {
+    0% { transform: translateX(-100%) skewX(-12deg); }
+    100% { transform: translateX(200%) skewX(-12deg); }
+}
+
+.progress-glow {
+    animation: glow 2s infinite linear;
+}
+
+/* Modal animasyonları */
+.modal-enter {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.modal-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 300ms, transform 300ms;
+}
+
+.modal-exit {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.modal-exit-active {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 300ms, transform 300ms;
+}
+</style>
+
+<!-- Progress Bar Modal -->
+<div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-96 transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Video Yükleniyor</h3>
+            <div class="relative pt-1">
+                <div class="h-2 bg-gray-200 rounded overflow-hidden">
+                    <div class="progress h-full bg-blue-500 transition-all duration-300 ease-out" style="width: 0%">
+                        <div class="progress-glow absolute top-0 right-0 h-full w-4 bg-white opacity-30 transform translate-x-2 skew-x-12"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600 mt-2">
+                    <span id="progressStatus" class="transition-all duration-300">Hazırlanıyor...</span>
+                    <span id="progressSize" class="transition-all duration-300">0 MB / 0 MB</span>
+                </div>
+                <div class="text-center mt-1">
+                    <span id="progressPercentage" class="text-sm font-semibold text-blue-500 transition-all duration-300">0%</span>
+                </div>
+            </div>
+        </div>
+        <div id="uploadSpeed" class="text-xs text-gray-500 text-center"></div>
+    </div>
+</div>
+
+<script>
+const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks
+
+let uploadStartTime = null;
+let lastUploadedBytes = 0;
+let lastUpdateTime = null;
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 MB';
+    const mb = bytes / (1024 * 1024);
+    return mb.toFixed(1) + ' MB';
+}
+
+function formatSpeed(bytesPerSecond) {
+    if (bytesPerSecond === 0) return '0 MB/s';
+    const mbps = (bytesPerSecond / (1024 * 1024)).toFixed(1);
+    return `${mbps} MB/s`;
+}
+
+function calculateSpeed(uploadedBytes) {
+    const now = Date.now();
+    if (!lastUpdateTime) {
+        lastUpdateTime = now;
+        lastUploadedBytes = 0;
+        return 0;
+    }
+
+    const timeDiff = (now - lastUpdateTime) / 1000; // saniye cinsinden
+    const bytesDiff = uploadedBytes - lastUploadedBytes;
+    const speed = bytesDiff / timeDiff;
+
+    lastUpdateTime = now;
+    lastUploadedBytes = uploadedBytes;
+
+    return speed;
+}
+
+function updateProgress(uploadedBytes, totalBytes, status) {
+    console.log('Progress güncelleniyor:', {
+        uploaded: formatFileSize(uploadedBytes),
+        total: formatFileSize(totalBytes),
+        status
+    });
+    
+    const progressBar = document.querySelector('.progress');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressSize = document.getElementById('progressSize');
+    const progressPercentage = document.getElementById('progressPercentage');
+    
+    const percent = (uploadedBytes / totalBytes) * 100;
+    
+    // Progress bar güncelleme
+    if (progressBar) progressBar.style.width = `${percent}%`;
+    
+    // Status güncelleme
+    if (progressStatus) progressStatus.textContent = status;
+    
+    // Boyut güncelleme
+    if (progressSize) progressSize.textContent = `${formatFileSize(uploadedBytes)} / ${formatFileSize(totalBytes)}`;
+    
+    // Yüzde güncelleme
+    if (progressPercentage) progressPercentage.textContent = `${Math.round(percent)}%`;
+}
+
+async function uploadFile(file) {
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const filename = file.name;
+    let uploadedBytes = 0;
+    
+    console.log('Başlangıç:', {
+        totalChunks,
+        fileSize: file.size,
+        filename
+    });
+    
+    showUploadModal();
+    updateProgress(0, file.size, 'Hazırlanıyor...');
+    
+    try {
+        for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
+            const start = chunkNumber * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
+            
+            console.log(`Chunk ${chunkNumber + 1}/${totalChunks} yükleniyor...`);
+            
+            const formData = new FormData();
+            formData.append('chunk', new Blob([chunk], { type: file.type }));
+            formData.append('chunkNumber', chunkNumber);
+            formData.append('totalChunks', totalChunks);
+            formData.append('filename', filename);
+            
+            try {
+                const response = await fetch('/upload_chunk', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    console.error('Chunk yükleme hatası:', response.status);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Chunk yanıtı:', result);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Yükleme hatası');
+                }
+                
+                // Yüklenen boyutu güncelle
+                uploadedBytes += chunk.size;
+                console.log('Yüklenen:', formatFileSize(uploadedBytes), '/', formatFileSize(file.size));
+                
+                // Progress güncelleme
+                updateProgress(
+                    uploadedBytes,
+                    file.size,
+                    `Yükleniyor... (${chunkNumber + 1}/${totalChunks})`
+                );
+                
+                if (result.status === 'completed') {
+                    console.log('Yükleme tamamlandı, video işleniyor...');
+                    updateProgress(file.size, file.size, 'Video işleniyor...');
+                    
+                    const finalFormData = new FormData(document.getElementById('uploadForm'));
+                    finalFormData.append('video_filename', result.filename);
+                    
+                    const finalResponse = await fetch('/upload', {
+                        method: 'POST',
+                        body: finalFormData
+                    });
+                    
+                    if (!finalResponse.ok) {
+                        throw new Error(`HTTP error! status: ${finalResponse.status}`);
+                    }
+                    
+                    const finalResult = await finalResponse.json();
+                    if (finalResult.success) {
+                        console.log('İşlem tamamlandı, yönlendiriliyor...');
+                        updateProgress(file.size, file.size, 'Yükleme tamamlandı!');
+                        setTimeout(() => {
+                            hideUploadModal();
+                            window.location.href = finalResult.redirect;
+                        }, 1000);
+                    } else {
+                        throw new Error(finalResult.error);
+                    }
+                }
+            } catch (error) {
+                console.error(`Chunk ${chunkNumber} yükleme hatası:`, error);
+                throw new Error(`Chunk ${chunkNumber} yüklenirken hata: ${error.message}`);
+            }
+        }
+    } catch (error) {
+        console.error('Genel yükleme hatası:', error);
+        alert('Yükleme sırasında bir hata oluştu: ' + error.message);
+        hideUploadModal();
+    }
+}
+
+function showUploadModal() {
+    const modal = document.getElementById('uploadModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Modal'ı göster
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Animasyon için kısa gecikme
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 50);
+}
+
+function hideUploadModal() {
+    const modal = document.getElementById('uploadModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Animasyonlu kapanış
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    // Modal'ı gizle
+    setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+// Form submit event listener'ını güncelle
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const videoFile = document.getElementById('video').files[0];
+    if (!videoFile) {
+        alert('Lütfen bir video seçin');
+        return;
+    }
+    
+    const title = document.getElementById('title').value;
+    if (!title) {
+        alert('Lütfen bir başlık girin');
+        return;
+    }
+    
+    // Progress modal'ı göster
+    showUploadModal();
+    
+    try {
+        await uploadFile(videoFile);
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Yükleme sırasında bir hata oluştu: ' + error.message);
+        hideUploadModal();
+    }
+});
+</script>
+{% endblock %}

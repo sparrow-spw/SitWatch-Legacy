@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Kayıt Ol - SitWatch{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <div class="hidden md:flex flex-col items-center justify-center p-8 bg-white rounded-lg border border-[#e8e8e8]">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                 alt="SitWatch Logo" 
+                 class="w-48 mb-6">
+
+            <h2 class="text-2xl font-bold text-[#333] mb-4">SitWatch'a Hoş Geldiniz</h2>
+
+            <div class="space-y-4 text-center">
+                <p class="text-[14px] text-[#666]">SitWatch ile yapabilecekleriniz:</p>
+
+                <div class="space-y-3">
+                    <div class="flex items-center text-[14px] text-[#666]">
+                        <svg class="w-5 h-5 text-[#167dd1] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Video yükleyebilir ve paylaşabilirsiniz
+                    </div>
+
+                    <div class="flex items-center text-[14px] text-[#666]">
+                        <svg class="w-5 h-5 text-[#167dd1] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Diğer kullanıcıları takip edebilirsiniz
+                    </div>
+
+                    <div class="flex items-center text-[14px] text-[#666]">
+                        <svg class="w-5 h-5 text-[#167dd1] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Videolara yorum yapabilirsiniz
+                    </div>
+
+                    <div class="flex items-center text-[14px] text-[#666]">
+                        <svg class="w-5 h-5 text-[#167dd1] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Kendi kanalınızı oluşturabilirsiniz
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg border border-[#e8e8e8]">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-center mb-6">Kayıt Ol</h1>
+
+                <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
+
+                    <div>
+                        <label for="username" class="block text-[12px] text-[#333] mb-1">Kullanıcı Adı</label>
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               required 
+                               class="w-full h-[32px] px-3 border border-[#ccc] text-[12px] focus:outline-none focus:border-[#167dd1] rounded">
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-[12px] text-[#333] mb-1">E-posta</label>
+                        <input type="email" 
+                               id="email" 
+                               name="email" 
+                               required 
+                               class="w-full h-[32px] px-3 border border-[#ccc] text-[12px] focus:outline-none focus:border-[#167dd1] rounded">
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-[12px] text-[#333] mb-1">Şifre</label>
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               required 
+                               class="w-full h-[32px] px-3 border border-[#ccc] text-[12px] focus:outline-none focus:border-[#167dd1] rounded">
+                    </div>
+
+                    <div>
+                        <label for="password_confirm" class="block text-[12px] text-[#333] mb-1">Şifre Tekrar</label>
+                        <input type="password" 
+                               id="password_confirm" 
+                               name="password_confirm" 
+                               required 
+                               class="w-full h-[32px] px-3 border border-[#ccc] text-[12px] focus:outline-none focus:border-[#167dd1] rounded">
+                    </div>
+
+                    <div>
+                        <label class="flex items-start">
+                            <input type="checkbox" 
+                                   required 
+                                   class="mt-1 mr-2">
+                            <span class="text-[12px] text-[#666]">
+                                <a href="{{ url_for('terms') }}" class="text-[#167dd1] hover:underline" target="_blank">Kullanım Şartları</a>,
+                                <a href="{{ url_for('privacy_policy') }}" class="text-[#167dd1] hover:underline" target="_blank">Gizlilik Politikası</a> ve
+                                <a href="{{ url_for('kvkk') }}" class="text-[#167dd1] hover:underline" target="_blank">KVKK Aydınlatma Metni</a>'ni
+                                okudum ve kabul ediyorum.
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="cf-turnstile" data-sitekey="cloudflare_site_key_buraya_yazın"></div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="space-y-2">
+                                {% for category, message in messages %}
+                                    <div class="p-3 rounded text-[12px] flex items-center justify-between {% if category == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                                        <span>{{ message }}</span>
+                                        <button type="button" 
+                                                onclick="this.parentElement.remove()" 
+                                                class="ml-2 text-[10px] hover:text-opacity-75">
+                                            ✕
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <button type="submit" 
+                            class="w-full h-[32px] bg-[#167dd1] text-white text-[12px] rounded hover:bg-[#1369b0] transition-colors">
+                        Kayıt Ol
+                    </button>
+
+                    <div class="text-center text-[12px] text-[#666]">
+                        Zaten hesabınız var mı? 
+                        <a href="{{ url_for('login') }}" class="text-[#167dd1] hover:underline">Giriş Yap</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('password_confirm').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+
+    if (password !== confirmPassword) {
+        this.setCustomValidity('Şifreler eşleşmiyor');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    const confirmPassword = document.getElementById('password_confirm');
+    if (confirmPassword.value) {
+        if (this.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Şifreler eşleşmiyor');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+});
+
+document.getElementById('username').addEventListener('input', function() {
+    if (this.value.length > 32) {
+        this.value = this.value.slice(0, 32);
+    }
+    
+    this.value = this.value.replace(/[^\x00-\x7F]/g, '');
+    this.value = this.value.replace(/[^a-zA-Z0-9\-_]/g, '');
+    
+    if (this.value.length > 32) {
+        this.setCustomValidity('Kullanıcı adı 32 karakterden uzun olamaz');
+    } else if (!/^[a-zA-Z0-9\-_]*$/.test(this.value)) {
+        this.setCustomValidity('Sadece İngilizce karakterler, rakamlar, tire (-) ve alt çizgi (_) kullanılabilir');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('[class*="bg-red-100"], [class*="bg-green-100"]');
+    flashMessages.forEach(function(message) {
+        setTimeout(function() {
+            message.style.transition = 'opacity 0.5s ease-out';
+            message.style.opacity = '0';
+            setTimeout(function() {
+                message.remove();
+            }, 500);
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

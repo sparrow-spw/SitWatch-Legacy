@@ -1,0 +1,215 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Ana konteynerlerin merkezde toplanması */
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Video Galeri */
+.video-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* Video Item */
+.video-item {
+    width: 300px;
+    margin-bottom: 20px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.video-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Video Başlığı */
+.video-title {
+    padding: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.video-title:hover {
+    color: #007BFF;
+}
+
+/* Profil Header */
+.profile-header {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    margin-bottom: 30px;
+    transition: box-shadow 0.3s;
+}
+
+.profile-header:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Profil İçeriği */
+.profile-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Profil Resmi */
+.profile-image-container {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s;
+}
+
+.profile-image-container:hover {
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* Profil Resmi */
+.profile-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+.username {
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Abone Ol Butonu */
+.subscribe-button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.subscribe-button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Yorumlar */
+.comment {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.comment:hover {
+    background-color: #f1f1f1;
+}
+
+/* Yorum Yazarı */
+.comment-author {
+    font-style: italic;
+    color: #7f8c8d;
+}
+
+/* Yorum Ekle Butonu */
+.add-comment {
+    background-color: #2ecc71;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.add-comment:hover {
+    background-color: #27ae60;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Profil Aksiyonları */
+.profile-actions {
+    display: flex;
+    justify-content: space-around;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.profile-actions a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s, text-shadow 0.3s;
+}
+
+.profile-actions a:hover {
+    color: #2980b9;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid Düzeni */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 15px;
+}
+
+.grid-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.grid-item:hover img {
+    transform: scale(1.1);
+}
+
+/* Görüntüleme Butonları */
+.user-actions button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.user-actions button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+

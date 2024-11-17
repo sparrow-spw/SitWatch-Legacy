@@ -1,0 +1,647 @@
+{% extends "base.html" %}
+
+{% block title %}Ayarlar{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        
+        <div class="space-y-4">
+            
+            <div class="bg-white border border-[#e8e8e8] rounded mb-4">
+                <div class="border-b border-[#e8e8e8] px-4 py-2">
+                    <h2 class="text-[14px] font-bold text-[#333]">Profil Görünümü</h2>
+                </div>
+                <div class="p-4">
+                    
+                    <div class="border border-[#e8e8e8] rounded mb-4">
+                        <div class="h-[120px] bg-[#f1f1f1] relative">
+                            <img src="{{ url_for('static', filename='banner_images/' + current_user.banner_image) }}" 
+                                 alt="Banner" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute -bottom-10 left-4">
+                                <div class="relative group">
+                                    <img src="{{ url_for('static', filename='profile_images/' + current_user.profile_image) }}" 
+                                         alt="Profil" 
+                                         class="w-20 h-20 rounded-full border-4 border-white">
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-12"></div>
+                    </div>
+
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-2">Profil Resmi</label>
+                            <div class="space-y-2">
+                                <input type="file" id="profile-image-input" class="hidden" accept="image/*">
+                                <button onclick="document.getElementById('profile-image-input').click()" 
+                                        class="w-full bg-[#167dd1] text-white text-[12px] px-4 py-2 rounded hover:bg-[#1370bd]">
+                                    Profil Resmini Değiştir
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-2">Banner Resmi</label>
+                            <div class="space-y-2">
+                                <input type="file" id="banner-image-input" class="hidden" accept="image/*">
+                                <button onclick="document.getElementById('banner-image-input').click()" 
+                                        class="w-full bg-[#167dd1] text-white text-[12px] px-4 py-2 rounded hover:bg-[#1370bd]">
+                                    Banner Resmini Değiştir
+                                </button>
+                                <button onclick="resetBanner()" 
+                                        class="w-full bg-[#f8f8f8] text-[#666] text-[12px] px-4 py-2 rounded border hover:bg-[#f0f0f0]">
+                                    Varsayılan Banner'a Dön
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="space-y-4">
+            
+            <div class="bg-white border border-[#e8e8e8] rounded">
+                <div class="border-b border-[#e8e8e8] px-4 py-2">
+                    <h2 class="text-[14px] font-bold text-[#333]">Profil Bilgileri</h2>
+                </div>
+                <div class="p-4">
+                    <form id="profile-info-form" class="space-y-3">
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-1">Kullanıcı Adı</label>
+                            <input type="text" name="username" value="{{ current_user.username }}" 
+                                   class="w-full h-[32px] px-2 border border-[#ccc] text-[12px] rounded focus:outline-none focus:border-[#167dd1]">
+                        </div>
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-1">E-posta</label>
+                            <input type="email" name="email" value="{{ current_user.email }}" 
+                                   class="w-full h-[32px] px-2 border border-[#ccc] text-[12px] rounded focus:outline-none focus:border-[#167dd1]">
+                        </div>
+                        <button type="submit" class="bg-[#167dd1] text-white text-[12px] px-4 py-2 rounded hover:bg-[#1370bd] w-full">
+                            Değişiklikleri Kaydet
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            
+            <div class="bg-white border border-[#e8e8e8] rounded">
+                <div class="border-b border-[#e8e8e8] px-4 py-2">
+                    <h2 class="text-[14px] font-bold text-[#333]">Şifre Değiştir</h2>
+                </div>
+                <div class="p-4">
+                    <form id="password-change-form" class="space-y-3">
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-1">Mevcut Şifre</label>
+                            <input type="password" id="current-password" 
+                                   class="w-full h-[32px] px-2 border border-[#ccc] text-[12px] rounded focus:outline-none focus:border-[#167dd1]">
+                        </div>
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-1">Yeni Şifre</label>
+                            <input type="password" id="new-password" 
+                                   class="w-full h-[32px] px-2 border border-[#ccc] text-[12px] rounded focus:outline-none focus:border-[#167dd1]">
+                        </div>
+                        <div>
+                            <label class="block text-[12px] text-[#666] mb-1">Yeni Şifre (Tekrar)</label>
+                            <input type="password" id="confirm-password" 
+                                   class="w-full h-[32px] px-2 border border-[#ccc] text-[12px] rounded focus:outline-none focus:border-[#167dd1]">
+                        </div>
+                        <button type="submit" class="bg-[#167dd1] text-white text-[12px] px-4 py-2 rounded hover:bg-[#1370bd] w-full">
+                            Şifreyi Değiştir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="space-y-4">
+            
+            <div class="bg-white border border-[#e8e8e8] rounded">
+                <div class="border-b border-[#e8e8e8] px-4 py-2">
+                    <h2 class="text-[14px] font-bold text-[#333]">Tema Ayarları</h2>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[12px] text-[#666]">Karanlık Mod</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" 
+                                   class="sr-only peer" 
+                                   onchange="toggleTheme()"
+                                   {% if request.cookies.get('theme') == 'dark' %}checked{% endif %}>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer 
+                                        peer-checked:after:translate-x-full peer-checked:after:border-white 
+                                        after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+                                        after:bg-white after:border-gray-300 after:border after:rounded-full 
+                                        after:h-5 after:w-5 after:transition-all peer-checked:bg-[#167dd1]">
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-[11px] text-[#666] mt-2">
+                        Karanlık mod tüm sayfaları otomatik olarak karanlık temaya dönüştürür.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl w-[90%] max-w-2xl">
+        <div class="p-4 border-b border-[#e8e8e8] flex justify-between items-center">
+            <h3 class="text-[14px] font-bold text-[#333]">Resmi Kırp</h3>
+            <button class="close text-[#666] hover:text-[#333]">&times;</button>
+        </div>
+        <div class="p-4">
+            <img id="cropperImage" src="" alt="Kırpılacak Resim">
+        </div>
+        <div class="p-4 border-t border-[#e8e8e8] flex justify-end gap-2">
+            <button id="cancelCrop" class="bg-[#f8f8f8] text-[#666] text-[12px] px-4 py-2 rounded border hover:bg-[#f0f0f0]">
+                İptal
+            </button>
+            <button id="saveCrop" class="bg-[#167dd1] text-white text-[12px] px-4 py-2 rounded hover:bg-[#1370bd]">
+                Kaydet
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.profile-image-section {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin: 1rem 0;
+}
+
+#current-profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.btn-change-image, .btn-save {
+    background-color: #167dd1;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-change-image:hover, .btn-save:hover {
+    background-color: #0c3bbe;
+}
+
+.error-message {
+    color: #f44336;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+#password-change-form {
+    max-width: 400px;
+}
+
+#password-change-form .form-group {
+    margin-bottom: 1rem;
+}
+
+#password-change-form input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#password-change-form button {
+    margin-top: 1rem;
+}
+
+.banner-image-section {
+    margin: 1rem 0;
+}
+
+.banner-preview {
+    width: 100%;
+    height: 180px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+#current-banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.banner-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-reset-banner {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-reset-banner:hover {
+    background-color: #c82333;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+.cropper-container {
+    max-height: 500px;
+    margin: 20px 0;
+}
+
+.cropper-container img {
+    max-width: 100%;
+    display: block;
+}
+
+.cropper-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background-color: #5a6268;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    const profileImageInput = document.getElementById('profile-image-input');
+    profileImageInput.addEventListener('change', function() {
+        const formData = new FormData();
+        formData.append('profile_image', this.files[0]);
+
+        fetch('/update_profile', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Profil resmi güncellenirken bir hata oluştu: ' + data.error);
+            }
+        });
+    });
+
+    const profileInfoForm = document.getElementById('profile-info-form');
+    profileInfoForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('/update_profile', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Profil bilgileri güncellenirken bir hata oluştu: ' + data.error);
+            }
+        });
+    });
+
+    document.getElementById('password-change-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (newPassword !== confirmPassword) {
+            Swal.fire({
+                title: 'Hata!',
+                text: 'Yeni şifreler eşleşmiyor!',
+                icon: 'error',
+                confirmButtonText: 'Tamam',
+                confirmButtonColor: '#167dd1'
+            });
+            return;
+        }
+
+        fetch('/change_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                old_password: currentPassword,
+                new_password: newPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Başarılı!',
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-4">Şifreniz başarıyla güncellendi!</p>
+                            <div class="bg-gray-100 p-3 rounded flex items-center justify-between">
+                                <code class="text-sm">${newPassword}</code>
+                                <button onclick="copyToClipboard('${newPassword}')" class="text-[#167dd1] hover:text-[#2793e6]">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#167dd1'
+                });
+                document.getElementById('password-change-form').reset();
+            } else {
+                Swal.fire({
+                    title: 'Hata!',
+                    text: data.message || 'Şifre değiştirme başarısız oldu.',
+                    icon: 'error',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#167dd1'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Hata!',
+                text: 'Bir hata oluştu: ' + error,
+                icon: 'error',
+                confirmButtonText: 'Tamam',
+                confirmButtonColor: '#167dd1'
+            });
+        });
+    });
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const copyButton = document.querySelector('.fa-copy').parentElement;
+            copyButton.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        }).catch(err => {
+            console.error('Panoya kopyalama başarısız oldu:', err);
+        });
+    }
+
+    const bannerImageInput = document.getElementById('banner-image-input');
+    bannerImageInput.addEventListener('change', function() {
+        const formData = new FormData();
+        formData.append('banner_image', this.files[0]);
+
+        fetch('/update_banner', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Banner resmi güncellenirken bir hata oluştu: ' + data.error);
+            }
+        });
+    });
+
+    const themeSelect = document.getElementById('theme-mode');
+
+    themeSelect.value = localStorage.getItem('theme') || 'light';
+
+    themeSelect.addEventListener('change', function() {
+        const selectedTheme = this.value;
+        document.documentElement.className = selectedTheme;
+        localStorage.setItem('theme', selectedTheme);
+    });
+});
+
+function resetBanner() {
+    if (confirm('Banner resminizi varsayılan resme sıfırlamak istediğinizden emin misiniz?')) {
+        fetch('/reset_banner', {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Banner sıfırlanırken bir hata oluştu: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Bir hata oluştu: ' + error);
+        });
+    }
+}
+
+let cropper = null;
+let currentUploadType = null; 
+
+document.getElementById('profile-image-input').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        currentUploadType = 'profile';
+        startCropper(e.target.files[0]);
+    }
+});
+
+document.getElementById('banner-image-input').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        currentUploadType = 'banner';
+        startCropper(e.target.files[0]);
+    }
+});
+
+function startCropper(file) {
+    const reader = new FileReader();
+    const modal = document.getElementById('cropperModal');
+    const cropperImage = document.getElementById('cropperImage');
+
+    reader.onload = function(e) {
+        cropperImage.src = e.target.result;
+        modal.style.display = 'block';
+
+        if (cropper) {
+            cropper.destroy();
+        }
+
+        cropper = new Cropper(cropperImage, {
+            aspectRatio: currentUploadType === 'profile' ? 1 : 4, 
+            viewMode: 2,
+            dragMode: 'move',
+            autoCropArea: 1,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+        });
+    };
+
+    reader.readAsDataURL(file);
+}
+
+document.getElementById('saveCrop').addEventListener('click', function() {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+        width: currentUploadType === 'profile' ? 400 : 1200,
+        height: currentUploadType === 'profile' ? 400 : 300
+    });
+
+    canvas.toBlob(function(blob) {
+        const formData = new FormData();
+        formData.append(
+            currentUploadType === 'profile' ? 'profile_image' : 'banner_image', 
+            blob, 
+            'cropped_image.png'
+        );
+
+        fetch(currentUploadType === 'profile' ? '/update_profile' : '/update_banner', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Resim güncellenirken bir hata oluştu: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Bir hata oluştu: ' + error);
+        });
+
+        closeCropperModal();
+    }, 'image/png');
+});
+
+function closeCropperModal() {
+    const modal = document.getElementById('cropperModal');
+    modal.style.display = 'none';
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+}
+
+document.querySelector('.close').addEventListener('click', closeCropperModal);
+document.getElementById('cancelCrop').addEventListener('click', closeCropperModal);
+
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('cropperModal');
+    if (e.target === modal) {
+        closeCropperModal();
+    }
+});
+</script>
+{% endblock %}

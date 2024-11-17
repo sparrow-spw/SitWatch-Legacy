@@ -1,0 +1,773 @@
+{% extends 'base.html' %}
+
+{% block meta_tags %}
+<meta property="og:title" content="{{ user.username }} - SitWatch">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ url_for('static', filename='profile_images/' + user.profile_image, _external=True) if user.profile_image else url_for('static', filename='images/default.jpg', _external=True) }}">
+<meta property="og:description" content="{{ user.about|default('SitWatch kullanıcı profili')|striptags|truncate(200) }}">
+<meta property="og:site_name" content="SitWatch">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ user.username }} - SitWatch">
+<meta name="twitter:description" content="{{ user.about|default('SitWatch kullanıcı profili')|striptags|truncate(200) }}">
+<meta name="twitter:image" content="{{ url_for('static', filename='profile_images/' + user.profile_image, _external=True) if user.profile_image else url_for('static', filename='images/default.jpg', _external=True) }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+
+    <div class="lg:hidden sticky top-0 z-10 bg-white border-b border-[#e8e8e8] mb-4">
+        <div class="flex items-center justify-between p-3">
+            <button onclick="history.back()" class="text-[#666]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1 class="text-[16px] font-bold">{{ user.username }}</h1>
+            <div class="w-5"></div>
+        </div>
+    </div>
+
+    <div class="bg-white border border-[#e8e8e8] mb-4 relative">
+
+        <div class="h-[120px] md:h-[180px] bg-[#f1f1f1] relative">
+            {% if user.banner_image %}
+                <img src="{{ url_for('static', filename='banner_images/' + user.banner_image)}}" 
+                     class="w-full h-full object-cover" alt="Banner">
+            {% endif %}
+        </div>
+
+        <div class="px-4 pb-3 flex flex-col md:flex-row items-start gap-4">
+
+            <div class="relative -mt-12 md:-mt-16">
+                <a href="{{ url_for('settings') if current_user.id == user.id else '#' }}" 
+                   class="relative block group">
+                    <img src="{{ url_for('static', filename='profile_images/' + user.profile_image) if user.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                         alt="{{ user.username }}" 
+                         class="w-[100px] h-[100px] md:w-[120px] md:h-[120px] border-4 border-white rounded-full">
+
+                    {% if current_user.id == user.id %}
+                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    {% endif %}
+                </a>
+            </div>
+
+            <div class="flex-1">
+                <div class="flex flex-col md:flex-row md:items-center gap-2 mb-2">
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-[18px] font-bold text-[#333]">
+                            {{ user.username }}
+                        </h1>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[14px] text-[#666]">{{ user.subscribers.count() }} abone</span>
+                        {% if user.is_banned %}
+                            <span class="bg-red-500 text-white text-[12px] px-2 py-0.5 rounded-full w-fit animate-pulse">
+                                BANLI
+                            </span>
+                        {% endif %}
+                        {% if user.is_founder %}
+                            <span class="bg-[#FF4D4D] text-white text-[12px] px-2 py-0.5 rounded-full w-fit">OWNER</span>
+                        {% elif user.is_admin %}
+                            <span class="bg-[#4CAF50] text-white text-[12px] px-2 py-0.5 rounded-full w-fit">ADMIN</span>
+                        {% endif %}
+                        {% if current_user.is_authenticated and current_user.id != user.id %}
+                        <button onclick="showReportModal('user', '{{ user.id }}')" 
+                                class="flex items-center gap-1 px-2 py-1 text-[12px] text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-colors ml-auto"
+                                title="Profili Bildir">
+                            <i class="fas fa-flag"></i>
+                            <span>Bildir</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 mb-2">
+                    <div class="relative flex h-2.5 w-2.5">
+                        {% if user.is_online %}
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                        {% else %}
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gray-400"></span>
+                        {% endif %}
+                    </div>
+                    <span class="text-[11px] text-[#666]">
+                        {% if user.is_online %}
+                            Çevrimiçi
+                        {% else %}
+                            Çevrimdışı
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 py-3 border-t border-b border-[#e8e8e8] mt-3 lg:hidden">
+                    <div class="text-center">
+                        <div class="text-[18px] font-bold text-[#333]">{{ user.subscribers.count() }}</div>
+                        <div class="text-[12px] text-[#666]">Abone</div>
+                    </div>
+                    <div class="text-center border-l border-r border-[#e8e8e8]">
+                        <div class="text-[18px] font-bold text-[#333]">{{ user.total_upload_views|default(0) }}</div>
+                        <div class="text-[12px] text-[#666]">Görüntülenme</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-2">
+                    {% if current_user.is_authenticated and current_user.id != user.id %}
+                        <button onclick="toggleSubscription({{ user.id }})" 
+                                id="subscribe-button-{{ user.id }}"
+                                class="{% if current_user.is_subscribed(user) %}bg-[#e62117]{% else %}bg-[#167ac6]{% endif %} text-white text-[13px] px-4 py-2 rounded-full hover:opacity-90 transition-colors">
+                            {% if current_user.is_subscribed(user) %}
+                                Abonelikten Çık
+                            {% else %}
+                                Abone Ol
+                            {% endif %}
+                        </button>
+
+                        <button onclick="showReportModal('user', '{{ user.id }}')" 
+                                class="bg-gray-100 p-2 rounded-full">
+                            <svg class="w-5 h-5 text-[#666]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                            </svg>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user.is_banned %}
+            <div class="bg-red-100 border-2 border-red-500 rounded-lg p-4 mb-4 animate-pulse">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span class="text-red-600 font-bold text-lg">Bu Hesap Banlanmıştır</span>
+                </div>
+                <div class="text-red-700 space-y-1">
+                    <p><strong>Ban Sebebi:</strong> {{ user.ban_record.reason }}</p>
+                    {% if user.ban_record.expiry_date %}
+                        <p><strong>Ban Bitiş:</strong> {{ user.ban_record.expiry_date.strftime('%d.%m.%Y %H:%M') }}</p>
+                    {% else %}
+                        <p><strong>Ban Türü:</strong> Süresiz</p>
+                    {% endif %}
+                    {% if current_user.is_admin %}
+                        <button onclick="unbanUser({{ user.id }})" 
+                                class="mt-3 bg-red-500 hover:bg-red-600 text-white text-[13px] px-4 py-2 rounded-full transition-colors">
+                            Banı Kaldır
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not user.is_banned %}
+
+        <div class="lg:hidden mb-4">
+            <div class="flex border-b border-[#e8e8e8] bg-white">
+                <button onclick="switchTab(this, 'videos')" 
+                        class="flex-1 py-3 text-[13px] font-medium border-b-2 border-[#167ac6]">
+                    Videolar
+                </button>
+                <button onclick="switchTab(this, 'about')" 
+                        class="flex-1 py-3 text-[13px] text-[#666]">
+                    Hakkında
+                </button>
+                <button onclick="switchTab(this, 'comments')" 
+                        class="flex-1 py-3 text-[13px] text-[#666]">
+                    Yorumlar
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-4">
+
+            <div class="lg:w-3/4">
+
+                <div class="lg:hidden bg-white border border-[#e8e8e8] p-4 mb-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-[14px] font-bold text-[#333]">Hakkında</h2>
+                        {% if current_user.id == user.id %}
+                        <button onclick="toggleMobileAboutEdit()" class="text-[11px] text-[#167ac6] hover:text-[#2793e6]">
+                            Düzenle
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div id="mobile-about-display">
+                        <p class="text-[12px] text-[#666] leading-relaxed whitespace-pre-wrap">{{ user.about|default('Henüz bir açıklama eklenmemiş.') }}</p>
+                        <div class="mt-3 text-[12px] text-[#666] space-y-1">
+                            <p>Son Giriş: {{ user.last_login.strftime('%d %B %Y %H:%M') if user.last_login else 'Bilinmiyor' }}</p>
+                        </div>
+                    </div>
+
+                    {% if current_user.id == user.id %}
+                    <div id="mobile-about-edit" class="hidden">
+                        <div class="relative">
+                            <textarea id="mobile-about-textarea" 
+                                     class="w-full border border-[#e8e8e8] p-2 text-[12px] mb-2 rounded resize-none" 
+                                     rows="6" 
+                                     maxlength="2500" 
+                                     oninput="updateMobileCharCount(this)">{{ user.about|default('') }}</textarea>
+                            <div class="absolute bottom-3 right-2 text-[10px] text-[#666]">
+                                <span id="mobileCharCount">0</span>/2500
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="cancelMobileAboutEdit()" 
+                                    class="text-[11px] text-[#666] hover:text-[#333]">
+                                İptal
+                            </button>
+                            <button onclick="saveMobileAbout()" 
+                                    class="bg-[#167ac6] text-white text-[11px] px-3 py-1 rounded">
+                                Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="bg-white border border-[#e8e8e8] mb-4">
+                    <div class="border-b border-[#e8e8e8] px-4 py-2">
+                        <h2 class="text-[14px] font-bold text-[#333]">Videolar</h2>
+                    </div>
+                    <div class="p-4">
+                        {% if videos %}
+                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {% for video in videos.items %}
+                                {% if video.is_approved %}
+                                <div class="border border-[#e8e8e8]">
+                                    <a href="{{ url_for('watch', video_id=video.id) }}">
+                                        <div class="relative">
+                                            <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                                 alt="Küçük Resim" 
+                                                 class="w-full aspect-video object-cover">
+                                            <span class="absolute bottom-1 right-1 bg-black text-white text-[10px] px-1">
+                                                {{ video.duration }}
+                                            </span>
+                                        </div>
+                                        <div class="p-2">
+                                            <h3 class="text-[12px] text-[#167ac6] line-clamp-2">{{ video.title }}</h3>
+                                            <p class="text-[10px] text-[#666] mt-1">{{ video.views }} görüntülenme</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% if current_user.is_admin or current_user.id == user.id %}
+                                <div class="mt-4">
+                                    <h2 class="text-[14px] font-bold text-[#333]">Onaylanmamış Videolar</h2>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        {% for video in videos %}
+                                        {% if not video.is_approved %}
+                                        <div class="border border-[#e8e8e8]">
+                                            <a href="{{ url_for('watch', video_id=video.id) }}">
+                                                <div class="relative">
+                                                    <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                                         alt="Küçük Resim" 
+                                                         class="w-full aspect-video object-cover">
+                                                    <span class="absolute bottom-1 right-1 bg-black text-white text-[10px] px-1">
+                                                        {{ video.duration }}
+                                                    </span>
+                                                </div>
+                                                <div class="p-2">
+                                                    <h3 class="text-[12px] text-[#167ac6] line-clamp-2">{{ video.title }}</h3>
+                                                    <p class="text-[10px] text-[#666] mt-1">{{ video.views }} görüntülenme</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-[12px] text-[#666]">{{ user.username }} için video bulunmamaktadır.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-white border border-[#e8e8e8] mb-4">
+                    <div class="border-b border-[#e8e8e8] px-4 py-2">
+                        <h2 class="text-[14px] font-bold text-[#333]">Kanal Yorumları</h2>
+                    </div>
+                    <div class="p-4">
+                        {% if current_user.is_authenticated %}
+                            <form action="{{ url_for('add_channel_comment', user_id=user.id) }}" method="POST" class="mb-4">
+                                <textarea name="content" rows="2" 
+                                        class="w-full border border-[#e8e8e8] p-2 text-[12px] mb-2 rounded" 
+                                        placeholder="Yorum yaz..."></textarea>
+                                <button type="submit" class="bg-[#167ac6] text-white text-[11px] px-3 py-1 rounded">
+                                    Yorum Ekle
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        <div class="space-y-3">
+                            {% for comment in user.channel_comments|reverse %}
+                            <div class="border-b border-[#e8e8e8] pb-2 last:border-0" id="comment-{{ comment.id }}">
+                                <div class="flex gap-2">
+                                    <img src="{{ url_for('static', filename='profile_images/' + comment.author.profile_image) }}" 
+                                         class="w-[32px] h-[32px] rounded-full">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <a href="{{ url_for('profile', username=comment.author.username) }}" 
+                                                   class="text-[11px] text-[#167ac6] hover:text-[#2793e6] font-medium">
+                                                    {{ comment.author.username }}
+                                                </a>
+                                                {% if comment.author.is_founder %}
+                                                    <span class="bg-[#FF4D4D] text-white text-[10px] px-1.5 py-0.5 rounded-full">OWNER</span>
+                                                {% elif comment.author.is_admin %}
+                                                    <span class="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full">ADMIN</span>
+                                                {% endif %}
+                                                <p class="text-[11px] text-[#333] mt-1" id="comment-content-{{ comment.id }}">
+                                                    {{ comment.content }}
+                                                </p>
+                                                <span class="text-[10px] text-[#666] block mt-1">
+                                                    {{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                                </span>
+                                            </div>
+
+                                            {% if current_user.is_authenticated and (current_user.id == comment.author_id or current_user.id == user.id or current_user.is_admin) %}
+                                            <div class="flex gap-2">
+                                                {% if current_user.id == comment.author_id %}
+                                                <button onclick="editComment('{{ comment.id }}')" 
+                                                        class="text-[10px] text-[#167ac6] hover:text-[#2793e6]">
+                                                    Düzenle
+                                                </button>
+                                                {% endif %}
+
+                                                <form action="{{ url_for('delete_channel_comment', comment_id=comment.id) }}" 
+                                                      method="POST" 
+                                                      class="inline"
+                                                      onsubmit="return confirm('Bu yorumu silmek istediğinizden emin misiniz?');">
+                                                    <button type="submit" class="text-[10px] text-[#e62117] hover:text-[#ff0000]">
+                                                        Sil
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div id="edit-form-{{ comment.id }}" class="hidden mt-2">
+                                            <form action="{{ url_for('edit_channel_comment', comment_id=comment.id) }}" method="POST">
+                                                <textarea name="content" rows="2" 
+                                                        class="w-full border border-[#e8e8e8] p-2 text-[12px] mb-2 rounded">{{ comment.content }}</textarea>
+                                                <div class="flex gap-2 justify-end">
+                                                    <button type="button" 
+                                                            onclick="cancelEdit('{{ comment.id }}')" 
+                                                            class="text-[11px] text-[#666] hover:text-[#333]">
+                                                        İptal
+                                                    </button>
+                                                    <button type="submit" 
+                                                            class="bg-[#167ac6] text-white text-[11px] px-3 py-1 rounded">
+                                                        Kaydet
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                                <p class="text-[12px] text-[#666]">Henüz yorum yapılmamış.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden lg:block lg:w-1/4">
+                <div class="bg-white border border-[#e8e8e8] p-4 sticky top-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-[14px] font-bold text-[#333]">Hakkında</h2>
+                        {% if current_user.id == user.id %}
+                        <button onclick="toggleAboutEdit()" class="text-[11px] text-[#167ac6] hover:text-[#2793e6]">
+                            Düzenle
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div id="about-display">
+                        <p class="text-[12px] text-[#666] leading-relaxed whitespace-pre-wrap">{{ user.about|default('Henüz bir açıklama eklenmemiş.') }}</p>
+                    </div>
+
+                    {% if current_user.id == user.id %}
+                    <div id="about-edit" class="hidden">
+                        <div class="relative">
+                            <textarea id="about-textarea" 
+                                     class="w-full border border-[#e8e8e8] p-2 text-[12px] mb-2 rounded resize-none" 
+                                     rows="6" 
+                                     maxlength="2500" 
+                                     oninput="updateCharCount(this)">{{ user.about|default('') }}</textarea>
+                            <div class="absolute bottom-3 right-2 text-[10px] text-[#666]">
+                                <span id="charCount">0</span>/2500
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="cancelAboutEdit()" 
+                                    class="text-[11px] text-[#666] hover:text-[#333]">
+                                İptal
+                            </button>
+                            <button onclick="saveAbout()" 
+                                    class="bg-[#167ac6] text-white text-[11px] px-3 py-1 rounded">
+                                Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4 pt-4 border-t border-[#e8e8e8]">
+                        <div class="text-[12px] text-[#666] space-y-2">
+                            <p>Son Giriş: {{ user.last_login.strftime('%d %B %Y %H:%M') if user.last_login else 'Bilinmiyor' }}</p>
+                            <p>Toplam Video: {{ videos.items|length if videos else 0 }}</p>
+                            <p>Toplam Görüntülenme: {{ user.total_upload_views|default(0) }}</p>
+                            <p>Toplam Abone: {{ user.subscribers.count() }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+
+        <div class="bg-red-100 border border-red-200 rounded-lg p-6 text-center mb-4">
+            <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <h2 class="text-xl font-bold text-red-600 mb-2">Bu Hesap Banlanmıştır</h2>
+            <p class="text-red-600 mb-4">Bu kullanıcının içerikleri ban süresince görüntülenemez.</p>
+            <div class="text-red-600 text-left max-w-md mx-auto space-y-2">
+                <p><strong>Ban Sebebi:</strong> {{ user.ban_record.reason }}</p>
+                {% if user.ban_record.expiry_date %}
+                    <p><strong>Ban Bitiş:</strong> {{ user.ban_record.expiry_date.strftime('%d.%m.%Y %H:%M') }}</p>
+                {% else %}
+                    <p><strong>Ban Türü:</strong> Süresiz</p>
+                {% endif %}
+            </div>
+            {% if current_user.is_admin %}
+                <button onclick="unbanUser({{ user.id }})" 
+                        class="mt-6 bg-red-500 hover:bg-red-600 text-white text-[13px] px-6 py-2 rounded-full transition-colors">
+                    Banı Kaldır
+                </button>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Profili Bildir</h2>
+            <button onclick="closeReportModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="reportForm" class="space-y-4">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <input type="hidden" name="type" value="user">
+
+            <div>
+                <label for="report_reason" class="block text-sm font-medium text-gray-700 mb-1">Bildirim Nedeni</label>
+                <select id="report_reason" name="reason" class="w-full border rounded-md p-2" required>
+                    <option value="">Bir neden seçin</option>
+                    <option value="spam">Spam veya Yanıltıcı İçerik</option>
+                    <option value="harassment">Taciz veya Zorbalık</option>
+                    <option value="inappropriate">Uygunsuz İçerik</option>
+                    <option value="impersonation">Kimlik Taklidi</option>
+                    <option value="other">Diğer</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="report_description" class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                <textarea id="report_description" 
+                          name="description" 
+                          rows="4" 
+                          class="w-full border rounded-md p-2" 
+                          required 
+                          placeholder="Lütfen bildirimin detaylarını açıklayın..."></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" 
+                        onclick="closeReportModal()" 
+                        class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
+                    İptal
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Bildir
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function editComment(commentId) {
+        document.getElementById(`comment-content-${commentId}`).style.display = 'none';
+        document.getElementById(`edit-form-${commentId}`).style.display = 'block';
+    }
+
+    function cancelEdit(commentId) {
+        document.getElementById(`comment-content-${commentId}`).style.display = 'block';
+        document.getElementById(`edit-form-${commentId}`).style.display = 'none';
+    }
+
+    function switchTab(element, tabName) {
+
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        const selectedContent = document.getElementById(`${tabName}-content`);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+        }
+
+        const buttons = element.parentElement.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.classList.remove('border-b-2', 'border-[#167ac6]', 'font-medium');
+            button.classList.add('text-[#666]');
+        });
+
+        element.classList.remove('text-[#666]');
+        element.classList.add('border-b-2', 'border-[#167ac6]', 'font-medium');
+    }
+
+    function showReportModal(type, id) {
+        const modal = document.getElementById('reportModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeReportModal() {
+        const modal = document.getElementById('reportModal');
+        const form = document.getElementById('reportForm');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            if (form) form.reset();
+        }
+    }
+
+    document.getElementById('reportForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const type = formData.get('type');
+        const id = formData.get('user_id');
+        const reason = formData.get('reason');
+        const description = formData.get('description');
+
+        try {
+            const response = await fetch('/submit_report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    type: type,
+                    id: id,
+                    reason: reason,
+                    description: description
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Bildiriminiz başarıyla gönderildi.');
+                closeReportModal();
+            } else {
+                alert(data.error || 'Bildirim gönderilirken bir hata oluştu.');
+            }
+        } catch (error) {
+            console.error('Hata:', error);
+            alert('Bildirim gönderilirken bir hata oluştu.');
+        }
+    });
+
+    function toggleSubscription(userId) {
+        fetch(`/subscribe/${userId}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const button = document.getElementById(`subscribe-button-${userId}`);
+                if (data.subscribed) {
+                    button.classList.remove('bg-[#167ac6]');
+                    button.classList.add('bg-[#e62117]');
+                    button.textContent = 'Abonelikten Çık';
+                } else {
+                    button.classList.remove('bg-[#e62117]');
+                    button.classList.add('bg-[#167ac6]');
+                    button.textContent = 'Abone Ol';
+                }
+
+                const subscriberCountElements = document.querySelectorAll('.text-[14px].text-[#666], .text-[18px].font-bold.text-[#333]');
+                subscriberCountElements.forEach(element => {
+                    if (element.textContent.includes('abone') || element.textContent.includes('Abone')) {
+                        element.textContent = data.subscriber_count + (element.classList.contains('text-[14px]') ? ' abone' : '');
+                    }
+                });
+
+                const mobileCountElement = document.querySelector('.grid.grid-cols-3 .text-[18px].font-bold');
+                if (mobileCountElement) {
+                    mobileCountElement.textContent = data.subscriber_count;
+                }
+            } else {
+                alert('Bir hata oluştu: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu.');
+        });
+    }
+
+    function updateCharCount(textarea) {
+        const charCount = textarea.value.length;
+        document.getElementById('charCount').textContent = charCount;
+    }
+
+    function toggleAboutEdit() {
+        document.getElementById('about-display').classList.add('hidden');
+        document.getElementById('about-edit').classList.remove('hidden');
+        const textarea = document.getElementById('about-textarea');
+        updateCharCount(textarea);
+        textarea.focus();
+    }
+
+    function cancelAboutEdit() {
+        document.getElementById('about-display').classList.remove('hidden');
+        document.getElementById('about-edit').classList.add('hidden');
+    }
+
+    function saveAbout() {
+        const content = document.getElementById('about-textarea').value;
+
+        if (content.length > 2500) {
+            alert('Açıklama 2500 karakterden uzun olamaz.');
+            return;
+        }
+
+        fetch('/update_about', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ about: content })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+
+                const desktopDisplay = document.querySelector('#about-display p');
+                desktopDisplay.textContent = content || 'Henüz bir açıklama eklenmemiş.';
+                desktopDisplay.classList.add('whitespace-pre-wrap');
+
+                const mobileDisplay = document.querySelector('#mobile-about-display p');
+                if (mobileDisplay) {
+                    mobileDisplay.textContent = content || 'Henüz bir açıklama eklenmemiş.';
+                    mobileDisplay.classList.add('whitespace-pre-wrap');
+                }
+
+                cancelAboutEdit();
+            } else {
+                alert('Bir hata oluştu: ' + (data.error || 'Bilinmeyen hata'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu.');
+        });
+    }
+
+    function toggleMobileAboutEdit() {
+        document.getElementById('mobile-about-display').classList.add('hidden');
+        document.getElementById('mobile-about-edit').classList.remove('hidden');
+        const textarea = document.getElementById('mobile-about-textarea');
+        updateMobileCharCount(textarea);
+        textarea.focus();
+    }
+
+    function cancelMobileAboutEdit() {
+        document.getElementById('mobile-about-display').classList.remove('hidden');
+        document.getElementById('mobile-about-edit').classList.add('hidden');
+    }
+
+    function updateMobileCharCount(textarea) {
+        const charCount = textarea.value.length;
+        document.getElementById('mobileCharCount').textContent = charCount;
+    }
+
+    function saveMobileAbout() {
+        const content = document.getElementById('mobile-about-textarea').value;
+
+        if (content.length > 2500) {
+            alert('Açıklama 2500 karakterden uzun olamaz.');
+            return;
+        }
+
+        fetch('/update_about', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ about: content })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+
+                const mobileDisplay = document.querySelector('#mobile-about-display p');
+                mobileDisplay.textContent = content || 'Henüz bir açıklama eklenmemiş.';
+                mobileDisplay.classList.add('whitespace-pre-wrap');
+
+                const desktopDisplay = document.querySelector('#about-display p');
+                if (desktopDisplay) {
+                    desktopDisplay.textContent = content || 'Henüz bir açıklama eklenmemiş.';
+                    desktopDisplay.classList.add('whitespace-pre-wrap');
+                }
+
+                cancelMobileAboutEdit();
+            } else {
+                alert('Bir hata oluştu: ' + (data.error || 'Bilinmeyen hata'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu.');
+        });
+    }
+</script>
+{% endblock %}

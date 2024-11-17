@@ -1,0 +1,702 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}Admin Paneli{% endblock %}
+
+{% block panel_content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Toplam Kullanıcı</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ total_users }}</div>
+    </div>
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Adminler</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ total_admins }}</div>
+    </div>
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Yasaklı Kullanıcılar</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ total_banned }}</div>
+    </div>
+</div>
+
+<!-- Site Durumu -->
+<div class="p-6 border-t border-[#e8e8e8]">
+    <h2 class="text-[16px] font-bold text-[#333] mb-4">Site Durumu</h2>
+    
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+        <form id="statusForm" class="space-y-4">
+            <div class="flex flex-col space-y-2">
+                <label class="text-[12px] text-[#666]">Durum Metni</label>
+                <input type="text" 
+                       name="text" 
+                       value="{{ site_settings.status_text if site_settings else '' }}"
+                       placeholder="Örn: Bakım çalışması devam ediyor..." 
+                       class="w-full px-3 py-2 text-[13px] border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+            </div>
+            
+            <div class="flex flex-col space-y-2">
+                <label class="text-[12px] text-[#666]">Renk</label>
+                <input type="color" 
+                       name="color" 
+                       value="{{ site_settings.status_color if site_settings else '#000000' }}"
+                       class="h-[38px] w-[100px] px-1 border border-[#e8e8e8] rounded cursor-pointer">
+            </div>
+            
+            <div class="flex space-x-2">
+                <button type="submit" 
+                        class="px-4 py-2 bg-[#167ac6] text-white text-[13px] rounded hover:bg-[#2793e6]">
+                    Güncelle
+                </button>
+                
+                {% if site_settings and site_settings.status_text %}
+                <button type="button" 
+                        onclick="removeStatus()"
+                        class="px-4 py-2 bg-red-500 text-white text-[13px] rounded hover:bg-red-600">
+                    Kaldır
+                </button>
+                {% endif %}
+            </div>
+        </form>
+        
+        {% if site_settings and site_settings.status_text %}
+        <div class="mt-4 p-3 rounded" style="background-color: {{ site_settings.status_color }}20">
+            <div class="text-[13px]" style="color: {{ site_settings.status_color }}">
+                Önizleme: {{ site_settings.status_text }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="px-6 pb-6">
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg">
+        <div class="p-4 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <form method="GET" class="flex items-center space-x-2">
+                    <input type="text" 
+                           name="q" 
+                           value="{{ search_query }}"
+                           placeholder="Kullanıcı ara..." 
+                           class="w-[300px] px-3 py-1.5 text-[13px] border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+                    
+                    <input type="text"
+                           name="ip"
+                           value="{{ ip_query }}"
+                           placeholder="IP adresi ara..."
+                           class="w-[200px] px-3 py-1.5 text-[13px] border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+                    
+                    <select name="role" 
+                            class="px-3 py-1.5 text-[13px] border border-[#e8e8e8] rounded">
+                        <option value="all" {% if role_filter == 'all' %}selected{% endif %}>Tüm Kullanıcılar</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Adminler</option>
+                        <option value="founder" {% if role_filter == 'founder' %}selected{% endif %}>Founder</option>
+                        <option value="banned" {% if role_filter == 'banned' %}selected{% endif %}>Yasaklı</option>
+                    </select>
+                    <button type="submit" 
+                            class="px-4 py-1.5 bg-[#167ac6] text-white text-[13px] rounded hover:bg-[#2793e6]">
+                        Filtrele
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-[#f0f0f0] text-[12px] text-[#666] uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium">Kullanıcı</th>
+                        <th class="px-4 py-3 text-left font-medium">E-posta</th>
+                        <th class="px-4 py-3 text-left font-medium">Kayıt Tarihi</th>
+                        <th class="px-4 py-3 text-left font-medium">Rol</th>
+                        <th class="px-4 py-3 text-left font-medium">Durum</th>
+                        <th class="px-4 py-3 text-left font-medium">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[13px]">
+                    {% for user in users.items %}
+                    <tr class="border-t border-[#e8e8e8] hover:bg-[#f8f8f8] {% if user.is_banned %}bg-red-50{% endif %}" data-user-id="{{ user.id }}">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center space-x-3">
+                                <img src="{{ url_for('static', filename='profile_images/' + user.profile_image) }}" 
+                                     class="w-8 h-8 rounded-full {% if user.is_banned %}opacity-50{% endif %}">
+                                <div>
+                                    <div class="font-medium {% if user.is_banned %}text-red-600{% endif %}">
+                                        {{ user.username }}
+                                        {% if user.is_banned %}
+                                            <span class="text-[11px] bg-red-500 text-white px-1.5 py-0.5 rounded-full ml-1">BANLI</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-[#666] text-[11px]">
+                                        ID: {{ user.id }}
+                                        <span class="ml-2 cursor-pointer hover:text-[#167ac6]" 
+                                              onclick="showRelatedAccounts('{{ user.last_ip }}')" 
+                                              title="Bu IP'ye ait diğer hesapları göster">
+                                            IP: {{ user.last_ip[:7] + '...' if user.last_ip else 'Bilinmiyor' }}
+                                            <i class="fas fa-search ml-1"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">{{ user.email }}</td>
+                        <td class="px-4 py-3 text-[#666]">{{ user.date_joined.strftime('%d.%m.%Y') }}</td>
+                        <td class="px-4 py-3">
+                            <select onchange="updateRole('{{ user.id }}', this.value)"
+                                    {% if not current_user.can_moderate(user) %}disabled{% endif %}
+                                    class="px-2 py-1 text-[12px] border border-[#e8e8e8] rounded 
+                                           {% if not current_user.can_moderate(user) %}opacity-50 cursor-not-allowed{% endif %}">
+                                <option value="user" {% if not user.is_admin and not user.is_founder %}selected{% endif %}>Kullanıcı</option>
+                                <option value="admin" {% if user.is_admin %}selected{% endif %}>Admin</option>
+                                <option value="founder" {% if user.is_founder %}selected{% endif %}>Founder</option>
+                            </select>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-[11px] rounded-full {% if user.is_banned %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ 'Yasaklı' if user.is_banned else 'Aktif' }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center space-x-2">
+                                {% if current_user.can_moderate(user) %}
+                                    <button onclick="toggleBan('{{ user.id }}')" 
+                                            class="text-[#666] hover:text-[#333]"
+                                            title="{{ 'Yasağı Kaldır' if user.is_banned else 'Yasağa Ekle' }}">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                    
+                                    <!-- Kullanıcı Düzenleme Butonu -->
+                                    <button onclick="openEditModal('{{ user.id }}', '{{ user.username|replace("'", "\\'") }}')"
+                                            class="text-[#666] hover:text-[#333]"
+                                            title="Kullanıcıyı Düzenle">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="text-[11px] text-[#666] italic">Yetkiniz yok</span>
+                                {% endif %}
+                                <a href="{{ url_for('profile', username=user.username) }}" 
+                                   class="text-[#666] hover:text-[#333]"
+                                   title="Profili Görüntüle">
+                                    <i class="fas fa-user"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-4 border-t border-[#e8e8e8] flex items-center justify-between">
+            <div class="text-[12px] text-[#666]">
+                Toplam {{ total_users }} kullanıcıdan {{ start_index }}-{{ end_index }} arası gösteriliyor
+            </div>
+            <div class="flex items-center space-x-1">
+                {% if users.has_prev %}
+                    <a href="{{ url_for('mod_panel', page=users.prev_num, role=role_filter, q=search_query) }}" 
+                       class="px-3 py-1 text-[12px] border border-[#e8e8e8] rounded hover:bg-[#f0f0f0]">
+                        Önceki
+                    </a>
+                {% endif %}
+                
+                {% if users.has_next %}
+                    <a href="{{ url_for('mod_panel', page=users.next_num, role=role_filter, q=search_query) }}" 
+                       class="px-3 py-1 text-[12px] border border-[#e8e8e8] rounded hover:bg-[#f0f0f0]">
+                        Sonraki
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Düzenleme Modal -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" style="display: none;">
+    <div class="bg-white rounded-lg p-6 w-96 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <h3 class="text-lg font-bold mb-4">Kullanıcıyı Düzenle</h3>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm text-[#666] block mb-1">Kullanıcı Adı</label>
+                <input type="text" id="editUsername" 
+                       class="w-full px-3 py-2 border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+            </div>
+            
+            <div class="flex space-x-2">
+                <button onclick="resetUsername()" 
+                        class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                    İsmi Sıfırla
+                </button>
+                <button onclick="resetProfileImage()" 
+                        class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                    Resmi Sıfırla
+                </button>
+            </div>
+
+            <div>
+                <label class="text-sm text-[#666] block mb-1">Şifre İşlemleri</label>
+                <div class="space-y-2">
+                    <button onclick="showPasswordWarning()" 
+                            class="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                        Şifreyi Sıfırla
+                    </button>
+                    <button onclick="showChangePasswordForm()" 
+                            class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Şifreyi Değiştir
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2 mt-6">
+                <button onclick="closeEditModal()" 
+                        class="px-4 py-2 text-[#666] hover:text-[#333]">
+                    İptal
+                </button>
+                <button onclick="saveChanges()" 
+                        class="px-4 py-2 bg-[#167ac6] text-white rounded hover:bg-[#2793e6]">
+                    Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Şifre Uyarı Modalı -->
+<div id="passwordWarningModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-96 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <h3 class="text-lg font-bold mb-4 text-red-600">Önemli Uyarı!</h3>
+        <p class="text-sm mb-4">
+            Bu özelliği kötüye kullanmanız durumunda yönetici yetkiniz derhal alınacaktır. 
+            Şifre görüntüleme işlemi kaydedilecektir.
+        </p>
+        <div class="flex justify-end space-x-2">
+            <button onclick="closePasswordWarningModal()" 
+                    class="px-4 py-2 text-[#666] hover:text-[#333]">
+                İptal
+            </button>
+            <button onclick="showPassword()" 
+                    class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                Devam Et
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Şifre Değiştirme Modalı -->
+<div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-96 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <h3 class="text-lg font-bold mb-4">Şifre Değiştir</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm text-[#666] block mb-1">Yeni Şifre</label>
+                <input type="password" 
+                       id="newPassword" 
+                       class="w-full px-3 py-2 border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+            </div>
+            <div>
+                <label class="text-sm text-[#666] block mb-1">Şifreyi Tekrarla</label>
+                <input type="password" 
+                       id="confirmPassword" 
+                       class="w-full px-3 py-2 border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeChangePasswordModal()" 
+                        class="px-4 py-2 text-[#666] hover:text-[#333]">
+                    İptal
+                </button>
+                <button onclick="changePassword()" 
+                        class="px-4 py-2 bg-[#167ac6] text-white rounded hover:bg-[#2793e6]">
+                    Değiştir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- IP'ye Bağlı Hesaplar Modalı -->
+<div id="relatedAccountsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-[600px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">IP'ye Bağlı Hesaplar</h3>
+            <button onclick="closeRelatedAccountsModal()" class="text-[#666] hover:text-[#333]">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div id="relatedAccountsContent" class="max-h-[400px] overflow-y-auto">
+            <!-- İçerik dinamik olarak doldurulacak -->
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUserId = null;
+
+function openEditModal(userId, username) {
+    console.log("Modal açılıyor:", userId, username); // Debug için log
+    currentUserId = userId;
+    document.getElementById('editUsername').value = username;
+    const modal = document.getElementById('editModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        console.error("Modal element not found!"); // Debug için hata logu
+    }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    currentUserId = null;
+}
+
+function updateRole(userId, role) {
+    fetch(`/mod_panel/update_role/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `role=${role}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Rol güncellenirken bir hata oluştu.');
+        }
+    });
+}
+
+function toggleBan(userId) {
+    // Kullanıcının mevcut ban durumunu kontrol et
+    const isBanned = document.querySelector(`tr[data-user-id="${userId}"]`).classList.contains('bg-red-50');
+    
+    if (isBanned) {
+        // Ban kaldırma işlemi
+        if (confirm('Bu kullanıcının banını kaldırmak istediğinizden emin misiniz?')) {
+            const formData = new FormData();
+            formData.append('action', 'unban');
+            
+            fetch(`/mod_panel/toggle_ban/${userId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Hata: ' + data.error);
+                }
+            });
+        }
+    } else {
+        // Banlama işlemi
+        const reason = prompt('Ban sebebi:');
+        if (!reason) return;
+        
+        const duration = prompt('Ban süresi (gün olarak, süresiz ban için boş bırakın):');
+        
+        const formData = new FormData();
+        formData.append('action', 'ban');
+        formData.append('reason', reason);
+        if (duration) formData.append('duration', duration);
+        
+        fetch(`/mod_panel/toggle_ban/${userId}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        });
+    }
+}
+
+document.getElementById('statusForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/mod_panel/update_status', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+});
+
+function removeStatus() {
+    if (confirm('Site durumunu kaldırmak istediğinizden emin misiniz?')) {
+        fetch('/mod_panel/remove_status', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+    }
+}
+
+function resetUsername() {
+    if (!currentUserId) return;
+    
+    if (confirm('Kullanıcı adını sıfırlamak istediğinizden emin misiniz?')) {
+        fetch(`/mod_panel/reset_username/${currentUserId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+    }
+}
+
+function resetProfileImage() {
+    if (!currentUserId) return;
+    
+    if (confirm('Profil resmini sıfırlamak istediğinizden emin misiniz?')) {
+        fetch(`/mod_panel/reset_profile_image/${currentUserId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+    }
+}
+
+function saveChanges() {
+    if (!currentUserId) return;
+    
+    const newUsername = document.getElementById('editUsername').value;
+    if (!newUsername) {
+        alert('Kullanıcı adı boş olamaz!');
+        return;
+    }
+    
+    fetch(`/mod_panel/update_user/${currentUserId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            username: newUsername
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+}
+
+function showPasswordWarning() {
+    document.getElementById('passwordWarningModal').style.display = 'flex';
+}
+
+function closePasswordWarningModal() {
+    document.getElementById('passwordWarningModal').style.display = 'none';
+}
+
+function showPassword() {
+    if (!currentUserId) return;
+    
+    if (!confirm('Bu işlem kullanıcının şifresini rastgele bir şifre ile değiştirecek. Devam etmek istiyor musunuz?')) {
+        closePasswordWarningModal();
+        return;
+    }
+    
+    fetch(`/mod_panel/get_password/${currentUserId}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Kullanıcının yeni şifresi: ${data.password}\n\nLütfen bu şifreyi not alın, tekrar görüntülenemez!`);
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+        closePasswordWarningModal();
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+        closePasswordWarningModal();
+    });
+}
+
+function showChangePasswordForm() {
+    document.getElementById('changePasswordModal').style.display = 'flex';
+}
+
+function closeChangePasswordModal() {
+    document.getElementById('changePasswordModal').style.display = 'none';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+}
+
+function changePassword() {
+    if (!currentUserId) return;
+    
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (!newPassword || !confirmPassword) {
+        alert('Lütfen tüm alanları doldurun!');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        alert('Şifreler eşleşmiyor!');
+        return;
+    }
+    
+    fetch(`/mod_panel/change_password/${currentUserId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            new_password: newPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Şifre başarıyla değiştirildi!');
+            closeChangePasswordModal();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+}
+
+function showRelatedAccounts(ip) {
+    if (!ip) {
+        alert('Bu kullanıcı için IP bilgisi bulunmuyor.');
+        return;
+    }
+    
+    fetch(`/mod_panel/get_related_accounts/${ip}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modal = document.getElementById('relatedAccountsModal');
+                const content = document.getElementById('relatedAccountsContent');
+                
+                let html = `
+                    <div class="mb-3 p-2 bg-blue-50 rounded">
+                        <span class="font-medium">IP Adresi:</span> ${ip}
+                        <span class="ml-2 text-[12px] text-[#666]">(${data.accounts.length} hesap bulundu)</span>
+                    </div>
+                    <div class="space-y-2">
+                `;
+                
+                data.accounts.forEach(account => {
+                    html += `
+                        <div class="border border-[#e8e8e8] rounded p-3 hover:bg-[#f8f8f8]">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <img src="/static/profile_images/${account.profile_image}" 
+                                         class="w-8 h-8 rounded-full ${account.is_banned ? 'opacity-50' : ''}">
+                                    <div>
+                                        <div class="font-medium ${account.is_banned ? 'text-red-600' : ''}">
+                                            ${account.username}
+                                            ${account.is_banned ? '<span class="text-[11px] bg-red-500 text-white px-1.5 py-0.5 rounded-full ml-1">BANLI</span>' : ''}
+                                        </div>
+                                        <div class="text-[11px] text-[#666]">
+                                            ID: ${account.id} | Kayıt: ${account.date_joined}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="/profile/${account.username}" 
+                                       class="text-[#666] hover:text-[#333]"
+                                       title="Profili Görüntüle">
+                                        <i class="fas fa-user"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                content.innerHTML = html;
+                modal.style.display = 'flex';
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+}
+
+function closeRelatedAccountsModal() {
+    document.getElementById('relatedAccountsModal').style.display = 'none';
+}
+</script>
+{% endblock %}

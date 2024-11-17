@@ -1,0 +1,82 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}Sunucu Durumu{% endblock %}
+
+{% block panel_content %}
+<div class="p-6 space-y-6">
+    <!-- Sistem Bilgileri -->
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+        <h2 class="text-[16px] font-bold text-[#333] mb-4">Sistem Bilgileri</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">İşletim Sistemi</div>
+                <div class="text-[14px] font-medium">{{ system_info.os }}</div>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">Python Sürümü</div>
+                <div class="text-[14px] font-medium">{{ system_info.python_version }}</div>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">Flask Sürümü</div>
+                <div class="text-[14px] font-medium">{{ system_info.flask_version }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kaynak Kullanımı -->
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+        <h2 class="text-[16px] font-bold text-[#333] mb-4">Kaynak Kullanımı</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">CPU Kullanımı</div>
+                <div class="flex items-end space-x-2">
+                    <div class="text-[18px] font-bold">{{ system_info.cpu_usage }}%</div>
+                    <div class="text-[12px] text-[#666] mb-1">{{ system_info.cpu_cores }} Çekirdek</div>
+                </div>
+                <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-500 rounded-full h-2" style="width: {{ system_info.cpu_usage }}%"></div>
+                </div>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">RAM Kullanımı</div>
+                <div class="flex items-end space-x-2">
+                    <div class="text-[18px] font-bold">{{ system_info.ram_usage }}%</div>
+                    <div class="text-[12px] text-[#666] mb-1">{{ system_info.ram_total }} GB Toplam</div>
+                </div>
+                <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-500 rounded-full h-2" style="width: {{ system_info.ram_usage }}%"></div>
+                </div>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">Disk Kullanımı</div>
+                <div class="flex items-end space-x-2">
+                    <div class="text-[18px] font-bold">{{ system_info.disk_usage }}%</div>
+                    <div class="text-[12px] text-[#666] mb-1">{{ system_info.disk_total }} GB Toplam</div>
+                </div>
+                <div class="mt-2 bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-500 rounded-full h-2" style="width: {{ system_info.disk_usage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uygulama İstatistikleri -->
+    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+        <h2 class="text-[16px] font-bold text-[#333] mb-4">Uygulama İstatistikleri</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">Toplam Kullanıcı</div>
+                <div class="text-[14px] font-medium">{{ system_info.total_users }}</div>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">Toplam İşlem</div>
+                <div class="text-[14px] font-medium">{{ system_info.total_processes }}</div>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#e8e8e8]">
+                <div class="text-[12px] text-[#666] mb-1">Toplam Bellek</div>
+                <div class="text-[14px] font-medium">{{ system_info.total_memory }} GB</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

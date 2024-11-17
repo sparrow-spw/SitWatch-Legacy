@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm">
+        <!-- Header -->
+        <div class="border-b border-[#e8e8e8] p-6">
+            <div class="flex items-center justify-between">
+                <h1 class="text-[20px] font-bold text-[#333]">{% block panel_title %}{% endblock %}</h1>
+                <div class="flex items-center space-x-3">
+                    <div class="text-[13px] text-[#666]">
+                        <span class="font-medium">Son güncelleme:</span> {{ current_time.strftime('%d.%m.%Y %H:%M') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="border-b border-[#e8e8e8] px-6">
+            <nav class="flex space-x-1">
+                <a href="{{ url_for('mod_panel') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'users' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-users mr-2"></i>Kullanıcı Yönetimi
+                </a>
+                <a href="{{ url_for('mod_panel_videos') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'videos' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-video mr-2"></i>Video Yönetimi
+                </a>
+                <a href="{{ url_for('mod_panel_reports') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'reports' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-flag mr-2"></i>Raporlar
+                </a>
+                <a href="{{ url_for('mod_panel_settings') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'settings' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-cog mr-2"></i>Site Ayarları
+                </a>
+                <a href="{{ url_for('mod_panel_logs') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'logs' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-history mr-2"></i>İşlem Kayıtları
+                </a>
+                <a href="{{ url_for('ip_bans') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'ip_bans' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-ban mr-2"></i>IP Banları
+                </a>
+                <a href="{{ url_for('mod_panel_server') }}" 
+                   class="px-4 py-3 text-[13px] border-b-2 {% if active_tab == 'server' %}border-[#167ac6] text-[#167ac6] font-medium{% else %}border-transparent text-[#666] hover:text-[#333]{% endif %}">
+                    <i class="fas fa-server mr-2"></i>Sunucu Durumu
+                </a>
+            </nav>
+        </div>
+
+        {% block panel_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %} 

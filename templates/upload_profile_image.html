@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Profil Resmi Yükle</h1>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="profile_image" accept="image/*">
+    <button type="submit">Yükle</button>
+</form>
+{% endblock %}

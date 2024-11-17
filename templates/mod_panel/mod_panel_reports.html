@@ -1,0 +1,193 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}Raporlar{% endblock %}
+
+{% block panel_content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-6">
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Toplam Rapor</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ reports|length }}</div>
+    </div>
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Bekleyen Raporlar</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ reports|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+    </div>
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Bugünkü Raporlar</div>
+        <div class="text-[18px] font-bold text-[#333]">
+            {{ reports|selectattr('created_at', 'ge', current_time.replace(hour=0, minute=0, second=0, microsecond=0))|list|length }}
+        </div>
+    </div>
+</div>
+
+            <!-- Reports Table -->
+            <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-[#f0f0f0] text-[12px] text-[#666] uppercase">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium">Rapor Eden</th>
+                                <th class="px-4 py-3 text-left font-medium">Raporlanan</th>
+                                <th class="px-4 py-3 text-left font-medium">Sebep</th>
+                                <th class="px-4 py-3 text-left font-medium">Tarih</th>
+                                <th class="px-4 py-3 text-left font-medium">Durum</th>
+                                <th class="px-4 py-3 text-left font-medium">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-[13px]">
+                            {% for report in reports %}
+                            <tr class="border-t border-[#e8e8e8] hover:bg-[#f8f8f8]">
+                                <td class="px-4 py-3">{{ report.reporter.username }}</td>
+                                <td class="px-4 py-3">
+                                    {% if report.reported_user %}
+                                        <a href="{{ url_for('profile', username=report.reported_user.username) }}" 
+                                           class="text-[#167ac6] hover:text-[#2793e6]">
+                                            {{ report.reported_user.username }}
+                                        </a>
+                                    {% elif report.reported_video %}
+                                        <a href="{{ url_for('watch', video_id=report.reported_video.id) }}"
+                                           class="text-[#167ac6] hover:text-[#2793e6]">
+                                            {{ report.reported_video.title }}
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3">{{ report.reason }}</td>
+                                <td class="px-4 py-3 text-[#666]">{{ report.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-1 text-[11px] rounded-full 
+                                        {% if report.status == 'approved' %}
+                                            bg-green-100 text-green-800
+                                        {% elif report.status == 'rejected' %}
+                                            bg-red-100 text-red-800
+                                        {% else %}
+                                            bg-yellow-100 text-yellow-800
+                                        {% endif %}">
+                                        {% if report.status == 'approved' %}
+                                            Onaylandı
+                                        {% elif report.status == 'rejected' %}
+                                            Reddedildi
+                                        {% else %}
+                                            Beklemede
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-2">
+                                        {% if report.status == 'pending' %}
+                                            <button onclick="resolveReport({{ report.id }})" 
+                                                    class="text-green-600 hover:text-green-800"
+                                                    title="Çözüldü">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button onclick="dismissReport({{ report.id }})" 
+                                                    class="text-yellow-600 hover:text-yellow-800"
+                                                    title="Reddet">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% endif %}
+                                        {% if report.reported_user %}
+                                            <button onclick="banUser({{ report.reported_user.id }}, {{ report.id }})" 
+                                                    class="text-red-600 hover:text-red-800"
+                                                    title="Kullanıcıyı Banla">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        {% elif report.reported_video %}
+                                            <button onclick="deleteVideo({{ report.reported_video.id }}, {{ report.id }})" 
+                                                    class="text-red-600 hover:text-red-800"
+                                                    title="Videoyu Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function resolveReport(reportId) {
+    fetch(`/resolve_report/${reportId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+}
+
+function dismissReport(reportId) {
+    fetch(`/dismiss_report/${reportId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+}
+
+function banUser(userId, reportId) {
+    if (confirm('Bu kullanıcıyı banlamak istediğinizden emin misiniz?')) {
+        fetch(`/ban_user/${userId}/${reportId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Kullanıcı başarıyla banlandı.');
+                    location.reload();
+                } else {
+                    alert('Kullanıcı banlanırken bir hata oluştu.');
+                }
+            });
+    }
+}
+
+function deleteVideo(videoId, reportId) {
+    if (confirm('Bu videoyu silmek istediğinizden emin misiniz?')) {
+        fetch(`/delete_video/${videoId}/${reportId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Video başarıyla silindi.');
+                    location.reload();
+                } else {
+                    alert('Video silinirken bir hata oluştu.');
+                }
+            });
+    }
+}
+
+async function updateReportStatus(reportId, status) {
+    try {
+        const response = await fetch('/update_report_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                report_id: reportId,
+                status: status
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // Sayfayı yenile
+            location.reload();
+        } else {
+            alert(data.message || 'Durum güncellenirken bir hata oluştu');
+        }
+    } catch (error) {
+        console.error('Hata:', error);
+        alert('Durum güncellenirken bir hata oluştu');
+    }
+}
+</script>
+{% endblock %}

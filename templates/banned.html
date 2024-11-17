@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesabınız Engellendi - SitWatch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body class="bg-[#f9f9f9] min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-[600px]">
+        <div class="bg-white border border-[#e8e8e8] rounded-lg shadow-sm">
+            <!-- Header -->
+            <div class="border-b border-[#e8e8e8] p-6">
+                <div class="flex items-center justify-center gap-3">
+                    <i class="fas fa-user-lock text-[#ff6b6b] text-3xl"></i>
+                    <h1 class="text-[20px] font-bold text-[#333]">Hesabınız Engellendi</h1>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 space-y-4">
+                <div class="bg-[#fff8f8] border border-[#ffe0e0] rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-circle text-[#ff6b6b] mt-0.5"></i>
+                        <div>
+                            <h2 class="text-[14px] font-bold text-[#333] mb-1">Ban Detayları</h2>
+                            <div class="text-[12px] text-[#666] space-y-2">
+                                <p><span class="font-medium">Ban Tarihi:</span> {{ current_user.latest_ban.ban_date.strftime('%d.%m.%Y %H:%M') }}</p>
+                                <p><span class="font-medium">Ban Sebebi:</span> {{ current_user.latest_ban.reason }}</p>
+                                {% if current_user.latest_ban.expiry_date %}
+                                <p><span class="font-medium">Bitiş Tarihi:</span> {{ current_user.latest_ban.expiry_date.strftime('%d.%m.%Y %H:%M') }}</p>
+                                {% else %}
+                                <p><span class="font-medium">Ban Süresi:</span> Süresiz</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center text-[12px] text-[#666]">
+                    <p class="mb-4">Hesabınızın engelinin kaldırılması için iletişime geçebilirsiniz:</p>
+                    <a href="mailto:sparrow99biz@gmail.com" class="text-[#167ac6] hover:text-[#2793e6]">
+                        sparrow99biz@gmail.com
+                    </a>
+                    <a href="https://discord.gg/qPj9mTH8Ks" class="text-[#167ac6] hover:text-[#2793e6]">
+                        Discord
+                    </a>
+                </div>
+
+                <div class="border-t border-[#e8e8e8] pt-4 mt-4">
+                    <a href="{{ url_for('logout') }}" 
+                       class="block w-full text-center bg-[#167ac6] text-white text-[13px] py-2 rounded hover:bg-[#2793e6] transition-colors">
+                        Çıkış Yap
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+    </script>
+</body>
+</html> 

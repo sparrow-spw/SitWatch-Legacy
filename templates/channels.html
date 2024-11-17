@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Kanallar{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="bg-white border border-[#e8e8e8]">
+        <div class="border-b border-[#e8e8e8] px-4 py-2">
+            <h2 class="text-[14px] font-bold text-[#333]">Popüler Kanallar</h2>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for channel in channels.items %}
+                <div class="flex items-center gap-3 p-3 border border-[#e8e8e8] rounded">
+                    <img src="{{ url_for('static', filename='profile_images/' + channel.profile_image) }}" 
+                         alt="{{ channel.username }}"
+                         class="w-12 h-12 rounded-full">
+                    <div>
+                        <h3 class="text-[13px] font-medium">
+                            <a href="{{ url_for('profile', username=channel.username) }}" 
+                               class="text-[#167ac6] hover:text-[#2793e6]">
+                                {{ channel.username }}
+                            </a>
+                        </h3>
+                        <div class="text-[11px] text-[#666]">
+                            {{ channel.subscriber_count }} abone
+                        </div>
+                        <div class="text-[11px] text-[#666]">
+                            {{ channel.videos|length }} video
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if channels.pages > 1 %}
+            <div class="mt-4 flex justify-center">
+                <div class="flex gap-2">
+                    {% for page_num in channels.iter_pages() %}
+                        {% if page_num %}
+                            <a href="{{ url_for('channels', page=page_num) }}" 
+                               class="px-3 py-1 text-[12px] border {% if page_num == channels.page %}bg-[#167ac6] text-white{% else %}hover:bg-[#f0f0f0]{% endif %}">
+                                {{ page_num }}
+                            </a>
+                        {% else %}
+                            <span class="px-3 py-1 text-[12px] text-[#666]">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

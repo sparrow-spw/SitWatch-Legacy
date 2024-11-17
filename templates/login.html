@@ -1,0 +1,138 @@
+{% if not maintenance_mode %}
+{% extends "base.html" %}
+{% else %}
+{% extends "maintenance_base.html" %}
+{% endif %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Giriş Yap</h2>
+
+    {% if maintenance_mode %}
+    <div class="maintenance-notice">
+        <i class="fas fa-tools"></i> Bakım modu aktif. Sadece yöneticiler giriş yapabilir.
+    </div>
+    {% endif %}
+
+
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="username">Kullanıcı Adı</label>
+            <input style="width: 95%;" type="text" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Şifre</label>
+            <input style="width: 95%;" type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit" class="btn-primary">Giriş Yap</button>
+    </form>
+
+    <div class="auth-link">
+        Hesabınız yok mu? <a href="{{ url_for('register') }}">Kayıt Ol</a>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    transition: transform 0.2s ease;
+}
+
+.auth-container:hover {
+    transform: translateY(-2px);
+}
+
+.maintenance-notice {
+    background-color: #fff8e6;
+    border: 1px solid #ffe0a6;
+    color: #946c00;
+    padding: 15px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.form-group input {
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 15px;
+    width: 100%;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+    border-color: #167dd1;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(22, 125, 209, 0.1);
+}
+
+.btn-primary {
+    background-color: #167dd1;
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1266a9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 125, 209, 0.2);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 25px;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.auth-link a {
+    color: #167dd1;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+    color: #1266a9;
+    text-decoration: none;
+}
+
+h2 {
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

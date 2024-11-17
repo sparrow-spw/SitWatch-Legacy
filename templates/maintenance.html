@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/mainpage.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <title>SitWatch - Maintenance</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8545390053950856"
+     crossorigin="anonymous"></script>
+    <style>
+        @keyframes slowZoom {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{{ url_for('static', filename='images/bakim.png') }}") no-repeat center center fixed;
+            background-size: cover;
+            animation: slowZoom 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            position: relative;
+        }
+        .logo {
+            width: 300px;
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 2rem;
+        }
+        .message {
+            font-size: 2rem;
+            text-align: center;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+        .admin-login {
+            margin-top: 2rem;
+        }
+        .admin-login a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .admin-login a:hover {
+            background: white;
+            color: #1e3c72;
+        }
+        .social-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            font-family: Arial, sans-serif;
+            transition: opacity 0.3s;
+        }
+        .social-icon:hover {
+            opacity: 0.8;
+        }
+        .social-icon img {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+        }
+        .social-icon span {
+            font-size: 16px;
+        }
+        .credit-text {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 10px;
+            color: white;
+            text-shadow: 
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="SitWatch Logo" class="logo">
+    <div class="message">
+        <h1>Harika geliştirmeler yapıyoruz!</h1>
+        <p>Takipte kalın!</p>
+    </div>
+    <div class="admin-login">
+        <a href="{{ url_for('login') }}">Yönetici Girişi</a>
+    </div>
+    <a href="https://www.youtube.com/@Sparrow99_" target="_blank" class="social-icon" style="bottom: 60px;">
+        <img src="{{ url_for('static', filename='images/youtube-icon.png') }}" alt="YouTube">
+        <span>Sparrow99_</span>
+    </a>
+    <a href="https://discord.gg/tJgbgF7fYH" target="_blank" class="social-icon">
+        <img src="{{ url_for('static', filename='images/discord-icon.png') }}" alt="Discord">
+        <span>Discord Sunucumuz</span>
+    </a>
+    <div class="credit-text">
+        Bakım Arkaplanı: Luziend
+    </div>
+</body>
+</html> 

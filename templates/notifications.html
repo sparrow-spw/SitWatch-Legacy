@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4">Bildirimler</h1>
+    
+    <div class="notifications-list">
+        {% for notification in notifications %}
+            <div class="notification-item p-3 border-b border-[#e8e8e8] hover:bg-[#f8f8f8]">
+                <div class="flex items-center space-x-2">
+                    <img src="{{ url_for('static', filename='profile_images/' + notification.sender.profile_image) if notification.sender.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                         alt="" 
+                         class="w-8 h-8 rounded-full">
+                    <div>
+                        <p class="text-[12px]">{{ notification.content }}</p>
+                        <span class="text-[11px] text-gray-500">
+                            {% if (now - notification.created_at).days > 7 %}
+                                {{ notification.created_at.strftime('%d.%m.%Y') }}
+                            {% elif (now - notification.created_at).days > 0 %}
+                                {{ (now - notification.created_at).days }} gün önce
+                            {% elif (now - notification.created_at).seconds > 3600 %}
+                                {{ (now - notification.created_at).seconds // 3600 }} saat önce
+                            {% elif (now - notification.created_at).seconds > 60 %}
+                                {{ (now - notification.created_at).seconds // 60 }} dakika önce
+                            {% else %}
+                                Az önce
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="p-3 text-[12px] text-center text-gray-500">
+                Bildirim bulunmuyor
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Sayfalama -->
+    {% if notifications.pages > 1 %}
+        <div class="mt-4 flex justify-center space-x-2">
+            {% for page in notifications.iter_pages() %}
+                {% if page %}
+                    <a href="{{ url_for('notifications', page=page) }}" 
+                       class="px-3 py-1 border {% if page == notifications.page %}bg-blue-500 text-white{% else %}hover:bg-gray-100{% endif %}">
+                        {{ page }}
+                    </a>
+                {% else %}
+                    <span class="px-3 py-1">...</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/search.css') }}">
+<div class="search-results-container">
+    <h1 class="search-title">Arama Sonuçları: "{{ search_query }}"</h1>
+    <div class="search-options">
+        <div class="search-types">
+            <a href="{{ url_for('search', q=search_query, type='all') }}" 
+               class="search-type-link {% if search_type == 'all' %}active{% endif %}">
+                Tümü
+            </a>
+            <a href="{{ url_for('search', q=search_query, type='videos') }}" 
+               class="search-type-link {% if search_type == 'videos' %}active{% endif %}">
+                Videolar
+            </a>
+            <a href="{{ url_for('search', q=search_query, type='users') }}" 
+               class="search-type-link {% if search_type == 'users' %}active{% endif %}">
+                Kullanıcılar
+            </a>
+        </div>
+        {% if search_type != 'users' %}
+        <div class="sort-options">
+            Sıralama:
+            <select id="sort-select">
+                <option value="relevance" {% if sort_by == 'relevance' %}selected{% endif %}>İlgi</option>
+                <option value="upload_date" {% if sort_by == 'upload_date' %}selected{% endif %}>Yükleme tarihi</option>
+                <option value="view_count" {% if sort_by == 'view_count' %}selected{% endif %}>Görüntülenme sayısı</option>
+                <option value="comment_count" {% if sort_by == 'comment_count' %}selected{% endif %}>Yorum sayısı</option>
+            </select>
+        </div>
+        {% endif %}
+    </div>
+
+    <p class="results-count">Yaklaşık {{ results|length }} "{{ search_query }}" sonucu bulundu ({{ search_time }} saniye)</p>
+
+    {% if results %}
+        {% if search_type == 'users' or search_type == 'all' %}
+            <div class="users-grid">
+                {% for result in results if result.__class__.__name__ == 'User' %}
+                    <div class="user-card">
+                        <div class="user-banner">
+                            <img src="{{ url_for('static', filename='banner_images/' + (result.banner_image or 'default_banner.jpg')) }}" 
+                                 alt="Banner" class="user-banner-img">
+                        </div>
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <a href="{{ url_for('profile', username=result.username) }}">
+                                    <img src="{{ url_for('static', filename='profile_images/' + (result.profile_image or 'default.jpg')) }}" 
+                                         alt="{{ result.username }}">
+                                </a>
+                            </div>
+                            <div class="user-details">
+                                <h3 class="user-name">
+                                    <a href="{{ url_for('profile', username=result.username) }}">{{ result.username }}</a>
+                                </h3>
+                                <div class="user-stats">
+                                    <span>{{ result.get_subscriber_count() }} abone</span>
+                                    <span>•</span>
+                                    <span>{{ result.get_video_count() }} video</span>
+                                </div>
+                                {% if result.about %}
+                                    <p class="user-description">{{ result.about[:150] }}{% if result.about|length > 150 %}...{% endif %}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if search_type == 'videos' or search_type == 'all' %}
+            <div class="video-list">
+                {% for result in results if result.__class__.__name__ == 'Video' %}
+                    <div class="video-item">
+                        <div class="video-thumbnail">
+                            <a href="{{ url_for('watch', video_id=result.id) }}">
+                                <img src="{{ url_for('static', filename=result.thumbnail) }}" alt="{{ result.title }}">
+                                <span class="video-duration">{{ result.duration }}</span>
+                            </a>
+                        </div>
+                        <div class="video-details">
+                            <h3 class="video-title">
+                                <a href="{{ url_for('watch', video_id=result.id) }}">{{ result.title }}</a>
+                            </h3>
+                            <div class="video-meta">
+                                <a href="{{ url_for('profile', username=result.uploader.username) }}" class="uploader-name">
+                                    {{ result.uploader.username }}
+                                </a>
+                                <div class="video-stats">
+                                    <span>{{ result.views }} görüntülenme</span>
+                                    <span>•</span>
+                                    <span>{{ result.upload_date|time_ago }}</span>
+                                </div>
+                            </div>
+                            {% if result.description %}
+                                <p class="video-description">{{ result.description[:100] }}{% if result.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="no-results">Aramanızla eşleşen sonuç bulunamadı.</p>
+    {% endif %}
+</div>
+
+<style>
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.user-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.user-card:hover {
+    transform: translateY(-2px);
+}
+
+.user-banner {
+    height: 100px;
+    overflow: hidden;
+}
+
+.user-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info {
+    padding: 15px;
+    position: relative;
+}
+
+.user-avatar {
+    position: absolute;
+    top: -40px;
+    left: 15px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    width: 80px;
+    height: 80px;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details {
+    margin-left: 95px;
+    margin-top: 5px;
+}
+
+.user-name {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.user-name a {
+    color: #000;
+    text-decoration: none;
+}
+
+.user-stats {
+    color: #666;
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+.user-stats span {
+    margin: 0 5px;
+}
+
+.user-description {
+    color: #444;
+    font-size: 0.9em;
+    margin-top: 10px;
+    line-height: 1.4;
+}
+
+.search-types {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.search-type-link {
+    text-decoration: none;
+    color: #666;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.search-type-link.active {
+    background: #1a73e8;
+    color: white;
+}
+
+.search-type-link:hover:not(.active) {
+    background: #f0f0f0;
+}
+</style>
+
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

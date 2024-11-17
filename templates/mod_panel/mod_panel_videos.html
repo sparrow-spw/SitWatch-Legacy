@@ -1,0 +1,174 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}Video Yönetimi{% endblock %}
+
+{% block panel_content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-6">
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Toplam Video</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ total_videos }}</div>
+    </div>
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Raporlanan Videolar</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ reported_videos }}</div>
+    </div>
+    <div class="bg-[#f8f8f8] p-4 rounded-lg border border-[#e8e8e8]">
+        <div class="text-[#666] text-[12px] mb-1">Bugün Yüklenen</div>
+        <div class="text-[18px] font-bold text-[#333]">{{ today_count }}</div>
+    </div>
+</div>
+
+            
+            <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg">
+                
+                <div class="p-4 border-b border-[#e8e8e8] flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" 
+                               id="videoSearch" 
+                               placeholder="Video ara..." 
+                               class="w-[300px] px-3 py-1.5 text-[13px] border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+                    </div>
+                </div>
+
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-[#f0f0f0] text-[12px] text-[#666] uppercase">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium">Video</th>
+                                <th class="px-4 py-3 text-left font-medium">Yükleyen</th>
+                                <th class="px-4 py-3 text-left font-medium">Yükleme Tarihi</th>
+                                <th class="px-4 py-3 text-left font-medium">İzlenme</th>
+                                <th class="px-4 py-3 text-left font-medium">Durum</th>
+                                <th class="px-4 py-3 text-left font-medium">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-[13px]">
+                            {% for video in videos.items %}
+                            <tr class="border-t border-[#e8e8e8] hover:bg-[#f8f8f8]">
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-3">
+                                        <img src="{{ url_for('static', filename=video.thumbnail) }}" 
+                                             alt="{{ video.title }}"
+                                             class="w-16 h-9 object-cover rounded">
+                                        <div>
+                                            <a href="{{ url_for('watch', video_id=video.id) }}" class="font-medium">{{ video.title }}</a>
+                                            <div class="text-[#666] text-[11px]">{{ video.description|truncate(50) }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                                       class="text-[#167ac6] hover:text-[#2793e6]">
+                                        {{ video.uploader.username }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 text-[#666]">{{ video.upload_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td class="px-4 py-3">{{ video.views }}</td>
+                                <td class="px-4 py-3">
+                                    {% if not video.is_approved %}
+                                        <button onclick="approveVideo({{ video.id }})" 
+                                                class="bg-green-500 hover:bg-green-600 text-white text-[11px] px-3 py-1 rounded">
+                                            Onayla
+                                        </button>
+                                    {% else %}
+                                        <span class="text-green-500 text-[11px]">
+                                            <i class="fas fa-check"></i> Onaylı
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{{ url_for('watch', video_id=video.id) }}" 
+                                           class="text-[#666] hover:text-[#333]"
+                                           title="İzle">
+                                            <i class="fas fa-play"></i>
+                                        </a>
+                                        <button onclick="deleteVideo('{{ video.id }}')" 
+                                                class="text-red-600 hover:text-red-800"
+                                                title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                
+                <div class="p-4 border-t border-[#e8e8e8] flex items-center justify-between">
+                    <div class="text-[12px] text-[#666]">
+                        Toplam {{ total_videos }} videodan {{ start_index }}-{{ end_index }} arası gösteriliyor
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% if videos.has_prev %}
+                        <a href="{{ url_for('mod_panel_videos', page=videos.prev_num) }}" 
+                           class="px-3 py-1.5 text-[12px] border border-[#e8e8e8] rounded hover:bg-[#f8f8f8]">
+                            <i class="fas fa-chevron-left mr-1"></i>Önceki
+                        </a>
+                        {% endif %}
+
+                        <span class="text-[12px] text-[#666]">
+                            Sayfa {{ videos.page }} / {{ videos.pages }}
+                        </span>
+
+                        {% if videos.has_next %}
+                        <a href="{{ url_for('mod_panel_videos', page=videos.next_num) }}"
+                           class="px-3 py-1.5 text-[12px] border border-[#e8e8e8] rounded hover:bg-[#f8f8e8]">
+                            Sonraki<i class="fas fa-chevron-right ml-1"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteVideo(videoId) {
+    if (confirm('Bu videoyu silmek istediğinizden emin misiniz?')) {
+        fetch(`/video/${videoId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Video silinirken bir hata oluştu: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Bir hata oluştu: ' + error);
+        });
+    }
+}
+
+function approveVideo(videoId) {
+    if (confirm('Bu videoyu onaylamak istediğinizden emin misiniz?')) {
+        fetch(`/mod_panel/approve_video/${videoId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Video onaylanırken bir hata oluştu: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Bir hata oluştu: ' + error);
+        });
+    }
+}
+</script>
+
+{% endblock %}

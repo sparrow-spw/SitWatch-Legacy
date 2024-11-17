@@ -1,0 +1,130 @@
+.video-page-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.main-content {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.video-info-section {
+    padding: 15px;
+}
+
+.video-title {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.video-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.views-date {
+    font-size: 14px;
+    color: #606060;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn.like-btn,
+.action-btn.dislike-btn {
+    background: #f8f8f8;
+    border: 1px solid #d3d3d3;
+    color: #606060;
+}
+
+.action-btn.like-btn:hover,
+.action-btn.dislike-btn:hover {
+    background: #f0f0f0;
+    border-color: #c6c6c6;
+}
+
+.action-btn.share-btn {
+    background: #065fd4;
+    color: white;
+    border: none;
+}
+
+.action-btn.share-btn:hover {
+    background: #0056bf;
+}
+
+.action-btn i {
+    font-size: 16px;
+}
+
+/* Uploader Section */
+.uploader-info-2008 {
+    display: flex;
+    padding: 15px;
+    border-bottom: 1px solid #e8e8e8;
+    gap: 15px;
+}
+
+.uploader-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.uploader-details {
+    flex-grow: 1;
+}
+
+.uploader-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.subscriber-count {
+    font-size: 12px;
+    color: #606060;
+}
+
+.subscribe-button {
+    background: #065fd4;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.subscribe-button:hover {
+    background: #0056bf;
+}

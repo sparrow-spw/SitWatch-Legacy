@@ -1,0 +1,1336 @@
+{% extends 'base.html' %}
+
+{% block meta_tags %}
+<meta property="og:title" content="{{ video.title }} - SitWatch">
+<meta property="og:type" content="video.other">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ url_for('static', filename=video.thumbnail, _external=True) }}">
+<meta property="og:description" content="{{ video.description[:200] }}...">
+<meta property="og:site_name" content="SitWatch">
+<meta property="og:video" content="{{ url_for('static', filename='uploads/videos/' + video.filename, _external=True) }}">
+<meta property="og:video:type" content="video/mp4">
+{% endblock %}
+
+{% block title %}{{video['title']}} - SitWatch{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.tailwindcss.com">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/watch.css') }}">
+
+<script>
+    const videoId = "{{ video.id }}";
+    const current_user = {
+        id: {{ current_user.id if current_user.is_authenticated else 'null' }},
+        username: "{{ current_user.username if current_user.is_authenticated else '' }}",
+        profile_image: "{{ url_for('static', filename='profile_images/' + current_user.profile_image) if current_user.is_authenticated and current_user.profile_image else url_for('static', filename='images/default.jpg') }}"
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const video = document.getElementById('video-player');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        video.addEventListener('loadeddata', function() {
+
+            loadingSpinner.style.display = 'none';
+        });
+
+        video.addEventListener('error', function() {
+            loadingSpinner.style.display = 'none';
+        });
+    });
+</script>
+
+<script src="{{ url_for('static', filename='js/video-controls.js') }}" defer></script>
+
+<div class="video-page-container retro">
+    <div class="main-content" style="width: 70%;">
+        <div class="video-player-container mb-4">
+            <div class="video-container">
+
+                <div id="loading-spinner" class="video-loading-screen">
+                    <div class="vintage-loader"></div>
+                </div>
+
+                <video id="video-player" 
+                       data-video-id="{{ video.id }}"
+                       data-video-url="{{ url_for('static', filename='uploads/videos/' + video.filename) }}"
+                       loading="lazy"
+                       preload="metadata"
+                       playsinline
+                       crossorigin="anonymous"
+                       controlsList="nodownload"
+                       oncontextmenu="return false;">
+                    <source src="{{ url_for('static', filename='uploads/videos/' + video.filename) }}" type="video/mp4">
+                    Tarayıcınız video etiketini desteklemiyor.
+                </video>
+
+                <div class="custom-video-controls">
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                        <div class="progress-knob"></div>
+                    </div>
+
+                    <div class="controls-wrapper">
+                        <div class="left-controls">
+                            <button class="play-pause">
+                                <svg class="play-icon" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M8 5v14l11-7z"/>
+                                </svg>
+                                <svg class="pause-icon" viewBox="0 0 24 24" style="display: none;">
+                                    <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                                </svg>
+                            </button>
+
+                            <div class="volume-control">
+                                <button class="mute">
+                                    <svg class="volume-high" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                                    </svg>
+                                    <svg class="volume-low hidden" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm7-4.17v8.34L7.83 11H5v-2h2.83L10 4.83z"/>
+                                    </svg>
+                                    <svg class="volume-muted hidden" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M7 9v6h4l5 5V4l-5 5H7z"/>
+                                    </svg>
+                                </button>
+                                <input type="range" class="volume" min="0" max="1" step="0.1" value="1">
+                            </div>
+
+                            <div class="time-display">00:00 / 00:00</div>
+                        </div>
+
+                        <div class="right-controls">
+                            <div class="speed-control">
+                                <button class="speed-btn">
+                                    <span class="current-speed">1x</span>
+                                </button>
+                                <div class="speed-menu">
+                                    <button data-speed="0.25">0.25x</button>
+                                    <button data-speed="0.5">0.5x</button>
+                                    <button data-speed="1" class="active">1x</button>
+                                    <button data-speed="1.5">1.5x</button>
+                                    <button data-speed="2">2x</button>
+                                </div>
+                            </div>
+
+                            <button class="fullscreen">
+                                <svg viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="video-details-2008 bg-white border border-[#e8e8e8]">
+
+            <div class="p-4 border-b border-[#e8e8e8]">
+                <div class="flex justify-between items-start mb-3">
+                    <h1 class="text-[20px] font-bold text-[#333]">{{ video.title }}</h1>
+
+                    <div class="flex gap-2">
+                        {% if current_user.is_admin %}
+                            <span class="inline-flex items-center text-[12px] px-2 py-1 border {% if video.is_approved %}border-[#4CAF50] text-[#4CAF50]{% else %}border-[#e62117] text-[#e62117]{% endif %}">
+                                <i class="fas {% if video.is_approved %}fa-check{% else %}fa-times{% endif %} mr-1"></i>
+                                {{ 'Onaylı' if video.is_approved else 'Onaylanmamış' }}
+                            </span>
+                        {% endif %}
+
+                        {% if current_user.is_authenticated and (current_user.id == video.user_id or current_user.is_admin) %}
+                            <button onclick="initializeEditModal()" 
+                                    class="inline-flex items-center text-[12px] px-2 py-1 border border-[#666] text-[#666] hover:border-[#333] hover:text-[#333] transition-colors">
+                                <i class="fas fa-edit mr-1"></i> Düzenle
+                            </button>
+
+                            {% if current_user.is_admin or current_user.id == video.user_id %}
+                            <button onclick="deleteVideo({{ video.id }})" 
+                                    class="inline-flex items-center text-[12px] px-2 py-1 border border-[#e62117] text-[#e62117] hover:bg-[#e62117] hover:text-white transition-colors">
+                                <i class="fas fa-trash-alt mr-1"></i> Sil
+                            </button>
+                            {% endif %}
+                        {% endif %}
+
+                        <button type="button" 
+                                class="report-button inline-flex items-center text-[12px] px-2 py-1 border border-[#666] text-[#666] hover:border-[#333] hover:text-[#333] transition-colors">
+                            <i class="fas fa-flag mr-1"></i> Bildir
+                        </button>
+
+                        <a href="{{ url_for('static', filename='uploads/videos/' + video.filename) }}" 
+                           download="{{ video.title }}.mp4"
+                           class="inline-flex items-center text-[12px] px-2 py-1 border border-[#666] text-[#666] hover:border-[#333] hover:text-[#333] transition-colors">
+                            <i class="fas fa-download mr-1"></i> İndir
+                        </a>
+                    </div>
+                </div>
+
+                <div class="views-info flex items-center gap-2 text-[14px] mb-3">
+                    <span class="views-count font-bold text-[#167ac6]">{{ video.views }}</span>
+                    <span class="text-[#666]">görüntülenme</span>
+                    <span class="text-[#666]">•</span>
+                    <span class="text-[#666]">{{ video.upload_date.strftime('%d %b %Y') }}</span>
+                </div>
+
+                <div class="rating-section">
+                    <div class="rating-bar-container">
+                        <div class="rating-bar">
+                            <div class="rating-positive" style="width: '{{ (video.get_likes() / (video.get_likes() + video.get_dislikes()) * 100) if (video.get_likes() + video.get_dislikes()) > 0 else 50 }}%'"></div>
+                        </div>
+                        <div class="rating-numbers flex justify-between text-[13px] mt-2">
+                            <span class="rating-like-count font-medium">{{ video.get_likes() }}</span>
+                            <span class="rating-dislike-count font-medium">{{ video.get_dislikes() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mt-4">
+                        <button class="action-btn {% if user_action == 'like' %}active{% endif %}" 
+                                data-action="like" 
+                                data-video-id="{{ video.id }}">
+                            <i class="fa fa-thumbs-up"></i>
+                            <span class="count button-like-count">{{ video.get_likes() }}</span>
+                            <span class="text">Like</span>
+                        </button>
+
+                        <button class="action-btn {% if user_action == 'mid-like' %}active{% endif %}" 
+                                data-action="mid-like" 
+                                data-video-id="{{ video.id }}">
+                            <i class="fa fa-thumbs-up" style="transform: rotate(90deg);"></i>
+                            <span class="count button-mid-like-count">{{ video.get_mid_likes() }}</span>
+                            <span class="text">Midlike</span>
+                        </button>
+
+                        <button class="action-btn {% if user_action == 'dislike' %}active{% endif %}" 
+                                data-action="dislike" 
+                                data-video-id="{{ video.id }}">
+                            <i class="fa fa-thumbs-down"></i>
+                            <span class="count button-dislike-count">{{ video.get_dislikes() }}</span>
+                            <span class="text">Dislike</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% if not video.is_approved %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-clock text-yellow-500 mt-0.5"></i>
+                        <div>
+                            <h3 class="text-[13px] font-medium text-yellow-700">Bu Video Onay Bekliyor</h3>
+                            <p class="text-[12px] text-yellow-600">
+                                Video şu anda inceleme aşamasındadır. Onaylandıktan sonra diğer kullanıcılar tarafından görüntülenebilecektir.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="p-4">
+                <p class="text-[13px] text-[#666] whitespace-pre-wrap">{{ video.description }}</p>
+            </div>
+        </div>
+
+        <div class="comments-section-2008 bg-white border border-[#e8e8e8]">
+            <div class="border-b border-[#e8e8e8] px-4 py-2">
+                <h3 class="text-[14px] font-bold text-[#333]">Yorumlar</h3>
+            </div>
+
+            <div class="p-4">
+
+                {% if current_user.is_authenticated %}
+                <div class="flex gap-3 mb-4">
+                    <img src="{{ url_for('static', filename='profile_images/' + current_user.profile_image) if current_user.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                         alt="Avatar" 
+                         class="w-8 h-8 rounded-full">
+                    <div class="flex-1">
+                        <form id="comment-form" action="{{ url_for('add_comment', video_id=video.id) }}" method="POST">
+                            <textarea name="content" 
+                                     placeholder="Yorum yaz..." 
+                                     required
+                                     class="w-full min-h-[80px] p-2 border border-[#e8e8e8] text-[12px] focus:outline-none focus:border-[#167ac6]"></textarea>
+                            <button type="submit" 
+                                    class="mt-2 bg-[#167ac6] text-white text-[12px] px-4 py-2 hover:bg-[#2793e6]">
+                                Yorum Yap
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-[12px] text-[#666] mb-4">
+                    Yorum yapmak için <a href="{{ url_for('login') }}" class="text-[#167ac6] hover:text-[#2793e6]">giriş yapın</a>
+                </p>
+                {% endif %}
+
+                {% if video.pinned_comment %}
+                <div class="pinned-comment mb-4 border-b border-[#e8e8e8] pb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-thumbtack text-[#666]"></i>
+                        <span class="text-[12px] text-[#666]">Sabitlenmiş yorum</span>
+                    </div>
+
+                    <div class="comment">
+                        <div class="flex gap-3">
+                            <img src="{{ url_for('static', filename='profile_images/' + video.pinned_comment.user.profile_image) if video.pinned_comment.user.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                                 alt="{{ video.pinned_comment.user.username }}" 
+                                 class="w-8 h-8 rounded-full">
+                            <div class="flex-1">
+                                <div class="comment-header">
+                                    <a href="{{ url_for('profile', username=video.pinned_comment.user.username) }}" 
+                                       class="font-bold text-[13px] text-[#065fd4] hover:underline">
+                                        {{ video.pinned_comment.user.username }}
+                                    </a>
+                                    {% if video.pinned_comment.user.id == video.user_id %}
+                                        <span class="bg-white border border-[#e8e8e8] text-[11px] text-[#606060] px-1.5 py-0.5 rounded-full ml-1">Video Sahibi</span>
+                                    {% endif %}
+                                    {% if video.pinned_comment.user.is_founder %}
+                                        <span class="bg-[#FF4D4D] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">OWNER</span>
+                                    {% elif video.pinned_comment.user.is_admin %}
+                                        <span class="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">ADMIN</span>
+                                    {% endif %}
+                                    <span class="text-[11px] text-[#606060] ml-2">
+                                        {{ video.pinned_comment.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                    </span>
+                                    {% if video.pinned_comment.is_edited %}
+                                    <span class="comment-edited text-[11px] text-[#606060] ml-2">(düzenlendi)</span>
+                                    {% endif %}
+                                </div>
+                                <p class="comment-text text-[13px] text-[#333] mt-1">{{ video.pinned_comment.content }}</p>
+
+                                <div class="comment-actions mt-2">
+                                    <button class="reply-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                            data-comment-id="{{ video.pinned_comment.id }}">
+                                        Yanıtla
+                                    </button>
+                                    {% if current_user.id == video.pinned_comment.user_id %}
+                                    <button class="edit-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                            data-comment-id="{{ video.pinned_comment.id }}">
+                                        Düzenle
+                                    </button>
+                                    {% endif %}
+                                    {% if current_user.id == video.pinned_comment.user_id or current_user.is_admin %}
+                                    <button class="delete-comment-btn text-[11px] text-[#606060] hover:text-[#e62117] mr-2"
+                                            data-comment-id="{{ video.pinned_comment.id }}">
+                                        Sil
+                                    </button>
+                                    {% endif %}
+                                    {% if current_user.id == video.user_id %}
+                                    <button class="unpin-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4]"
+                                            data-comment-id="{{ video.pinned_comment.id }}">
+                                        <i class="fas fa-thumbtack"></i> Sabitlemeyi Kaldır
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <div class="replies-container ml-8 mt-3">
+                                    {% for reply in video.pinned_comment.replies %}
+                                    <div id="comment-{{ reply.id }}" class="reply mb-3">
+                                        <div class="flex gap-3">
+                                            <img src="{{ url_for('static', filename='profile_images/' + reply.user.profile_image) if reply.user.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                                                 alt="{{ reply.user.username }}" 
+                                                 class="w-8 h-8 rounded-full">
+                                            <div class="flex-1">
+                                                <div class="comment-header">
+                                                    <a href="{{ url_for('profile', username=reply.user.username) }}" 
+                                                       class="font-bold text-[13px] text-[#065fd4] hover:underline">
+                                                        {{ reply.user.username }}
+                                                    </a>
+                                                    {% if reply.user.id == video.user_id %}
+                                                        <span class="bg-white border border-[#e8e8e8] text-[11px] text-[#606060] px-1.5 py-0.5 rounded-full ml-1">Video Sahibi</span>
+                                                    {% endif %}
+                                                    {% if reply.user.is_founder %}
+                                                        <span class="bg-[#FF4D4D] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">OWNER</span>
+                                                    {% elif reply.user.is_admin %}
+                                                        <span class="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">ADMIN</span>
+                                                    {% endif %}
+                                                    <span class="text-[11px] text-[#606060] ml-2">
+                                                        {{ reply.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                                    </span>
+                                                    {% if reply.is_edited %}
+                                                    <span class="comment-edited text-[11px] text-[#606060] ml-2">(düzenlendi)</span>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="comment-text text-[13px] text-[#333] mt-1">{{ reply.content }}</p>
+
+                                                <div class="comment-actions mt-2">
+                                                    {% if current_user.id == reply.user_id %}
+                                                    <button class="edit-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                                            data-comment-id="{{ reply.id }}">
+                                                        Düzenle
+                                                    </button>
+                                                    {% endif %}
+
+                                                    {% if current_user.id == reply.user_id or current_user.id == video.user_id or current_user.is_admin %}
+                                                    <button class="delete-comment-btn text-[11px] text-[#606060] hover:text-[#e62117] mr-2"
+                                                            data-comment-id="{{ reply.id }}">
+                                                        Sil
+                                                    </button>
+                                                    {% endif %}
+
+                                                    {% if current_user.is_authenticated and current_user.id != reply.user_id %}
+                                                    <button onclick="showReportModal('comment', '{{ reply.id }}')"
+                                                            class="text-[11px] text-[#606060] hover:text-[#e62117] mr-2">
+                                                        <i class="fas fa-flag"></i> Bildir
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="comments-list mt-4">
+                    {% for comment in comments if comment.id != video.pinned_comment.id %}
+                    <div id="comment-{{ comment.id }}" class="comment mb-4">
+                        <div class="flex gap-3">
+                            <img src="{{ url_for('static', filename='profile_images/' + comment.user.profile_image) if comment.user.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                                 alt="{{ comment.user.username }}" 
+                                 class="w-8 h-8 rounded-full">
+                            <div class="flex-1">
+                                <div class="comment-header">
+                                    <a href="{{ url_for('profile', username=comment.user.username) }}" 
+                                       class="font-bold text-[13px] text-[#065fd4] hover:underline">
+                                        {{ comment.user.username }}
+                                    </a>
+                                    {% if comment.user.id == video.user_id %}
+                                        <span class="bg-white border border-[#e8e8e8] text-[11px] text-[#606060] px-1.5 py-0.5 rounded-full ml-1">Video Sahibi</span>
+                                    {% endif %}
+                                    {% if comment.user.is_founder %}
+                                        <span class="bg-[#FF4D4D] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">OWNER</span>
+                                    {% elif comment.user.is_admin %}
+                                        <span class="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">ADMIN</span>
+                                    {% endif %}
+                                    <span class="text-[11px] text-[#606060] ml-2">
+                                        {{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                    </span>
+                                    {% if comment.is_edited %}
+                                    <span class="comment-edited text-[11px] text-[#606060] ml-2">(düzenlendi)</span>
+                                    {% endif %}
+                                </div>
+                                <p class="comment-text text-[13px] text-[#333] mt-1">{{ comment.content }}</p>
+
+                                <div class="comment-actions mt-2">
+                                    <button class="reply-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                            data-comment-id="{{ comment.id }}">
+                                        Yanıtla
+                                    </button>
+
+                                    {% if current_user.id == comment.user_id %}
+                                    <button class="edit-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                            data-comment-id="{{ comment.id }}">
+                                        Düzenle
+                                    </button>
+                                    {% endif %}
+
+                                    {% if current_user.id == comment.user_id or current_user.id == video.user_id or current_user.is_admin %}
+                                    <button class="delete-comment-btn text-[11px] text-[#606060] hover:text-[#e62117] mr-2"
+                                            data-comment-id="{{ comment.id }}">
+                                        Sil
+                                    </button>
+                                    {% endif %}
+
+                                    {% if current_user.is_authenticated and current_user.id != comment.user_id %}
+                                    <button onclick="showReportModal('comment', '{{ comment.id }}')"
+                                            class="text-[11px] text-[#606060] hover:text-[#e62117] mr-2">
+                                        <i class="fas fa-flag"></i> Bildir
+                                    </button>
+                                    {% endif %}
+
+                                    {% if current_user.id == video.user_id and not comment.is_pinned %}
+                                    <button class="pin-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4]"
+                                            data-comment-id="{{ comment.id }}">
+                                        <i class="fas fa-thumbtack"></i> Sabitle
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <div class="replies-container ml-8 mt-3">
+                                    {% for reply in comment.replies %}
+                                    <div id="comment-{{ reply.id }}" class="reply mb-3">
+                                        <div class="flex gap-3">
+                                            <img src="{{ url_for('static', filename='profile_images/' + reply.user.profile_image) if reply.user.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                                                 alt="{{ reply.user.username }}" 
+                                                 class="w-8 h-8 rounded-full">
+                                            <div class="flex-1">
+                                                <div class="comment-header">
+                                                    <a href="{{ url_for('profile', username=reply.user.username) }}" 
+                                                       class="font-bold text-[13px] text-[#065fd4] hover:underline">
+                                                        {{ reply.user.username }}
+                                                    </a>
+                                                    {% if reply.user.id == video.user_id %}
+                                                        <span class="bg-white border border-[#e8e8e8] text-[11px] text-[#606060] px-1.5 py-0.5 rounded-full ml-1">Video Sahibi</span>
+                                                    {% endif %}
+                                                    {% if reply.user.is_founder %}
+                                                        <span class="bg-[#FF4D4D] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">OWNER</span>
+                                                    {% elif reply.user.is_admin %}
+                                                        <span class="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">ADMIN</span>
+                                                    {% endif %}
+                                                    <span class="text-[11px] text-[#606060] ml-2">
+                                                        {{ reply.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                                    </span>
+                                                    {% if reply.is_edited %}
+                                                    <span class="comment-edited text-[11px] text-[#606060] ml-2">(düzenlendi)</span>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="comment-text text-[13px] text-[#333] mt-1">{{ reply.content }}</p>
+
+                                                <div class="comment-actions mt-2">
+                                                    {% if current_user.id == reply.user_id %}
+                                                    <button class="edit-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                                            data-comment-id="{{ reply.id }}">
+                                                        Düzenle
+                                                    </button>
+                                                    {% endif %}
+
+                                                    {% if current_user.id == reply.user_id or current_user.id == video.user_id or current_user.is_admin %}
+                                                    <button class="delete-comment-btn text-[11px] text-[#606060] hover:text-[#e62117] mr-2"
+                                                            data-comment-id="{{ reply.id }}">
+                                                        Sil
+                                                    </button>
+                                                    {% endif %}
+
+                                                    {% if current_user.is_authenticated and current_user.id != reply.user_id %}
+                                                    <button onclick="showReportModal('comment', '{{ reply.id }}')"
+                                                            class="text-[11px] text-[#606060] hover:text-[#e62117] mr-2">
+                                                        <i class="fas fa-flag"></i> Bildir
+                                                    </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar-2008" style="width: 30%;">
+        <div class="uploader-info-2008 bg-white border border-[#e8e8e8] mb-4">
+            <div class="h-[80px] md:h-[100px] bg-[#f1f1f1] relative">
+                {% if video.uploader.banner_image %}
+                    <img src="{{ url_for('static', filename='banner_images/' + video.uploader.banner_image) }}" 
+                         class="w-full h-full object-cover" alt="Banner">
+                {% endif %}
+            </div>
+
+            <div class="px-3 pb-3">
+                <div class="relative -mt-6">
+                    <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                       class="block">
+                        <img src="{{ url_for('static', filename='profile_images/' + video.uploader.profile_image) if video.uploader.profile_image else url_for('static', filename='images/default.jpg') }}" 
+                             alt="{{ video.uploader.username }}" 
+                             class="w-[50px] h-[50px] border-2 border-white rounded-full object-cover">
+                    </a>
+                </div>
+
+                <div class="mt-2">
+                    <div class="flex items-center gap-2 mb-1">
+                        <a href="{{ url_for('profile', username=video.uploader.username) }}" 
+                           class="text-[14px] font-bold text-[#333] hover:text-[#167ac6]">
+                            {{ video.uploader.username }}
+                        </a>
+                        {% if video.uploader.is_founder %}
+                            <span class="bg-[#FF4D4D] text-white text-[10px] px-1.5 py-0.5 rounded-full">OWNER</span>
+                        {% elif video.uploader.is_admin %}
+                            <span class="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full">ADMIN</span>
+                        {% endif %}
+                    </div>
+                    <span class="subscriber-count text-[12px] text-[#666]">
+                        {{ video.uploader.subscribers.count() }} abone
+                    </span>
+
+                    {% if current_user.is_authenticated and current_user.id != video.uploader.id %}
+                    <div class="mt-2">
+                        <button onclick="handleSubscribe('{{ video.uploader.id }}')" 
+                                id="subscribe-button"
+                                class="w-full {% if is_subscribed %}bg-[#e62117]{% else %}bg-[#167ac6]{% endif %} text-white text-[12px] px-3 py-1.5 rounded-full hover:opacity-90 transition-colors">
+                            {% if is_subscribed %}
+                                Abonelikten Çık
+                            {% else %}
+                                Abone Ol
+                            {% endif %}
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="related-videos">
+            <div class="border-b border-[#e8e8e8] px-4 py-3 mb-4">
+                <h3 class="text-[15px] font-bold text-[#333]">lgili Videolar</h3>
+            </div>
+
+            <div class="space-y-4 px-3">
+                {% for video in recommended_videos %}
+                <div class="group hover:bg-[#f8f8f8] p-3 rounded-lg transition-colors">
+                    <div class="flex gap-3">
+                        <a href="{{ url_for('watch', video_id=video['id']) }}" 
+                           class="block w-[140px] shrink-0">
+                            <div class="relative">
+                                <img src="{{ url_for('static', filename=video['thumbnail']) }}" 
+                                     loading="lazy" 
+                                     class="w-full aspect-video object-cover rounded"
+                                     alt="{{ video['title'] }}">
+                                <span class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-[11px] px-2 py-0.5 rounded">
+                                    {{ video['duration'] }}
+                                </span>
+                            </div>
+                        </a>
+
+                        <div class="flex-1 min-w-0">
+                            <a href="{{ url_for('watch', video_id=video['id']) }}" 
+                               class="block group">
+                                <h3 class="text-[13px] font-medium text-[#167ac6] group-hover:text-[#2793e6] line-clamp-2">
+                                    {{ video['title'] }}
+                                </h3>
+                            </a>
+
+                            <div class="mt-1 space-y-1">
+                                <a href="{{ url_for('profile', username=video['uploader']) }}" 
+                                   class="block text-[11px] text-[#666] hover:text-[#167ac6]">
+                                    {{ video['uploader'] }}
+                                </a>
+
+                                <div class="flex items-center gap-2 text-[11px] text-[#666]">
+                                    <span>{{ video['views'] }} görüntülenme</span>
+                                    <span class="w-1 h-1 bg-[#666] rounded-full"></span>
+                                    <span>{{ video['upload_date'].strftime('%d.%m.%Y') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function handleSubscribe(channelId) {
+    try {
+        const response = await fetch(`/subscribe/${channelId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            const button = document.getElementById('subscribe-button');
+            if (button) {
+                if (data.is_subscribed) {
+                    button.textContent = 'Abonelikten Çık';
+                    button.classList.remove('bg-[#167ac6]');
+                    button.classList.add('bg-[#e62117]');
+                } else {
+                    button.textContent = 'Abone Ol';
+                    button.classList.remove('bg-[#e62117]');
+                    button.classList.add('bg-[#167ac6]');
+                }
+            }
+
+            const subscriberCount = document.querySelector('.subscriber-count');
+            if (subscriberCount) {
+                subscriberCount.textContent = `${data.subscriber_count} abone`;
+            }
+        } else {
+            console.error('Abone olma işlemi başarısız:', data.message);
+        }
+    } catch (error) {
+        console.error('Hata:', error);
+    }
+}
+</script>
+
+<script>
+function formatText(text) {
+    const escapeHtml = (text) => {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+
+    return escapeHtml(text)
+        .replace(/\n/g, '<br>')
+        .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mb-2">$1</h1>')
+        .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-bold mb-2">$1</h2>')
+        .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-bold mb-2">$1</h3>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\-\-(.*?)\-\-/g, '<del>$1</del>')
+        .replace(/^• (.*?)$/gm, '<li class="ml-4">$1</li>')
+        .replace(/^- (.*?)$/gm, '<li class="ml-4">$1</li>');
+}
+
+document.querySelectorAll('textarea[name="content"]').forEach(textarea => {
+    const container = document.createElement('div');
+    container.className = 'relative inline-block';
+
+    const helpIcon = document.createElement('button');
+    helpIcon.type = 'button';
+    helpIcon.className = 'text-[#666] hover:text-[#333] ml-1 focus:outline-none';
+    helpIcon.innerHTML = '<i class="fas fa-question-circle"></i>';
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'format-tooltip absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg w-64 hidden';
+    tooltip.innerHTML = `
+        <div class="text-[12px] space-y-2">
+            <div class="font-medium text-[#333] mb-1">Metin Formatları:</div>
+            <div><strong>**kalın**</strong></div>
+            <div><em>*italik*</em></div>
+            <div><del>--üstü çizili--</del></div>
+            <div class="text-[#666]"># Başlık 1</div>
+            <div class="text-[#666]">## Başlık 2</div>
+            <div class="text-[#666]">### Başlık 3</div>
+            <div class="text-[#666]">• veya - ile liste öğeleri</div>
+        </div>
+        <div class="tooltip-arrow absolute top-full left-1/2 transform -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-gray-200"></div>
+        <div class="tooltip-arrow absolute top-full left-1/2 transform -translate-x-1/2 -mt-[2px] border-8 border-transparent border-t-white"></div>
+    `;
+
+    container.appendChild(helpIcon);
+    container.appendChild(tooltip);
+
+    helpIcon.addEventListener('mouseenter', () => {
+        tooltip.classList.remove('hidden');
+    });
+
+    helpIcon.addEventListener('mouseleave', () => {
+        tooltip.classList.add('hidden');
+    });
+
+    const formGroup = textarea.closest('.flex-1');
+    if (formGroup) {
+        const header = formGroup.querySelector('textarea');
+        header.parentNode.insertBefore(container, header.nextSibling);
+    }
+});
+
+document.getElementById('comment-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const textarea = this.querySelector('textarea');
+    const content = textarea.value;
+
+    try {
+        const response = await fetch(`/api/comments/${videoId}/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `content=${encodeURIComponent(content)}`
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+
+            const commentHtml = `
+                <div id="comment-${data.comment.id}" class="comment mb-4">
+                    <div class="flex gap-3">
+                        <img src="${escapeHtml(data.comment.user_avatar)}" alt="${escapeHtml(data.comment.username)}" class="w-8 h-8 rounded-full">
+                        <div class="flex-1">
+                            <div class="comment-header">
+                                <a href="/profile/${escapeHtml(data.comment.username)}" class="font-bold text-[13px] text-[#065fd4] hover:underline">
+                                    ${escapeHtml(data.comment.username)}
+                                </a>
+                                <span class="text-[11px] text-[#606060] ml-2">
+                                    ${escapeHtml(data.comment.created_at)}
+                                </span>
+                            </div>
+                            <p class="comment-text text-[13px] text-[#333] mt-1 whitespace-pre-line">${formatText(data.comment.content)}</p>
+                            <div class="comment-actions mt-2">
+                                <button class="reply-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                        data-comment-id="${data.comment.id}">
+                                    Yanıtla
+                                </button>
+                                <button class="edit-comment-btn text-[11px] text-[#606060] hover:text-[#065fd4] mr-2"
+                                        data-comment-id="${data.comment.id}">
+                                    Düzenle
+                                </button>
+                                <button class="delete-comment-btn text-[11px] text-[#606060] hover:text-[#e62117]"
+                                        data-comment-id="${data.comment.id}">
+                                    Sil
+                                </button>
+                            </div>
+                            <div class="replies-container ml-8 mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const commentsList = document.querySelector('.comments-list');
+            commentsList.insertAdjacentHTML('afterbegin', commentHtml);
+
+            textarea.value = '';
+        }
+    } catch (error) {
+        console.error('Hata:', error);
+        alert('Yorum gönderilirken bir hata oluştu');
+    }
+});
+
+document.addEventListener('click', async function(e) {
+    if (e.target.classList.contains('reply-btn')) {
+        const commentId = e.target.dataset.commentId;
+        const commentDiv = document.getElementById(`comment-${commentId}`);
+        const repliesContainer = commentDiv.querySelector('.replies-container');
+
+        const existingForm = commentDiv.querySelector('.reply-form');
+        if (existingForm) {
+            existingForm.remove();
+            return;
+        }
+
+        const replyForm = document.createElement('form');
+        replyForm.className = 'reply-form mt-3 flex gap-3';
+        replyForm.innerHTML = `
+            <img src="${current_user.profile_image}" alt="Avatar" class="w-8 h-8 rounded-full">
+            <div class="flex-1">
+                <textarea name="content" 
+                         placeholder="Yanıt yaz..." 
+                         required
+                         class="w-full min-h-[60px] p-2 border border-[#e8e8e8] text-[12px] focus:outline-none focus:border-[#167ac6]"></textarea>
+                <div class="flex justify-end gap-2 mt-2">
+                    <button type="button" 
+                            class="cancel-reply-btn px-3 py-1 text-[12px] text-[#666] hover:bg-[#f8f8f8]">
+                        İptal
+                    </button>
+                    <button type="submit" 
+                            class="px-3 py-1 text-[12px] bg-[#167ac6] text-white hover:bg-[#1365a5]">
+                        Yanıtla
+                    </button>
+                </div>
+            </div>
+        `;
+
+        repliesContainer.insertAdjacentElement('beforebegin', replyForm);
+
+        replyForm.querySelector('.cancel-reply-btn').addEventListener('click', () => {
+            replyForm.remove();
+        });
+
+        replyForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const content = replyForm.querySelector('textarea').value;
+
+            try {
+                const response = await fetch(`/api/comments/${commentId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `content=${encodeURIComponent(content)}`
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const escapeHtml = (text) => {
+                        const div = document.createElement('div');
+                        div.textContent = text;
+                        return div.innerHTML;
+                    };
+
+                    const replyHtml = `
+                        <div id="comment-${data.reply.id}" class="reply mb-3">
+                            <div class="flex gap-3">
+                                <img src="${escapeHtml(data.reply.user_avatar)}" 
+                                     alt="${escapeHtml(data.reply.username)}" 
+                                     class="w-8 h-8 rounded-full">
+                                <div class="flex-1">
+                                    <div class="comment-header">
+                                        <a href="/profile/${escapeHtml(data.reply.username)}" 
+                                           class="font-bold text-[13px] text-[#065fd4] hover:underline">
+                                            ${escapeHtml(data.reply.username)}
+                                        </a>
+                                        <span class="text-[11px] text-[#606060] ml-2">
+                                            ${escapeHtml(data.reply.created_at)}
+                                        </span>
+                                    </div>
+                                    <p class="comment-text text-[13px] text-[#333] mt-1 whitespace-pre-line">${formatText(data.reply.content)}</p>
+                                    <div class="comment-actions mt-2">
+                                        <button class="delete-comment-btn text-[11px] text-[#606060] hover:text-[#e62117]"
+                                                data-comment-id="${data.reply.id}">
+                                            Sil
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    repliesContainer.insertAdjacentHTML('beforeend', replyHtml);
+                    replyForm.remove();
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+            }
+        });
+    }
+});
+</script>
+
+<div id="editVideoModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Videoyu Düzenle</h2>
+        <form id="editVideoForm">
+            <input type="hidden" name="video_id" value="{{ video.id }}">
+            <div class="form-group">
+                <label for="title">Başlık</label>
+                <input type="text" id="title" name="title" value="{{ video.title }}" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Açıklama</label>
+                <textarea id="description" name="description" rows="4" required>{{ video.description }}</textarea>
+            </div>
+            <button type="submit" class="edit-video-btn">Kaydet</button>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/likeSystem.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/comments.js') }}" defer></script>
+
+<script>
+
+    function openReportModal() {
+        const modal = document.getElementById('reportModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeReportModal() {
+        const modal = document.getElementById('reportModal');
+        const form = document.getElementById('reportForm');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            if (form) form.reset();
+        }
+    }
+</script>
+<script src="{{ url_for('static', filename='js/reportModal.js') }}"></script>
+
+<div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    {% if current_user.is_authenticated %}
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Videoyu Bildir</h2>
+            <button onclick="closeReportModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+
+        </div>
+        {% endif %}
+
+        <form id="reportForm" class="space-y-4">
+            <input type="hidden" name="video_id" value="{{ video.id }}">
+
+            <div>
+                <label for="report_reason" class="block text-sm font-medium text-gray-700 mb-1">Bildirim Nedeni</label>
+                <select id="report_reason" name="reason" class="w-full border rounded-md p-2" required>
+                    <option value="">Bir neden seçin</option>
+                    <option value="inappropriate">Uygunsuz İçerik</option>
+                    <option value="copyright">Telif Hakkı İhlali</option>
+                    <option value="spam">Spam veya Yanıltıcı</option>
+                    <option value="violence">Şiddet</option>
+                    <option value="harassment">Taciz veya Zorbalık</option>
+                    <option value="other">Diğer</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="report_description" class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                <textarea id="report_description" 
+                          name="description" 
+                          rows="4" 
+                          class="w-full border rounded-md p-2" 
+                          required 
+                          placeholder="Lütfen bildirimin detaylarını açıklayın..."></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" 
+                        onclick="closeReportModal()" 
+                        class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
+                    İptal
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Bildir
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.video-page-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.main-content {
+    flex: 0 0 70%;
+}
+
+.sidebar-2008 {
+    flex: 0 0 30%;
+}
+
+@media (max-width: 1200px) {
+    .video-page-container {
+        flex-direction: column;
+    }
+
+    .main-content,
+    .sidebar-2008 {
+        width: 100%;
+    }
+}
+
+.speed-control {
+    position: relative;
+}
+
+.speed-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.speed-menu {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: rgba(28, 28, 28, 0.9);
+    border-radius: 4px;
+    padding: 5px 0;
+    margin-bottom: 5px;
+    min-width: 100px;
+    z-index: 1000;
+}
+
+.speed-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 15px;
+    border: none;
+    background: none;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+}
+
+.speed-menu button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.speed-menu button.active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.comment-text h1, .comment-text h2, .comment-text h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.comment-text li {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .video-page-container {
+        flex-direction: column;
+        padding: 0;
+    }
+
+    .main-content {
+        width: 100%;
+    }
+
+    .sidebar-2008 {
+        width: 100% !important;
+        margin-top: 1rem;
+    }
+
+    .video-details-2008 {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .comments-section-2008 {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .uploader-info-2008 {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .video-details-2008 .flex.justify-between.items-start {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .video-details-2008 .flex.gap-2 {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .comments-section-2008 .flex.gap-3 {
+        gap: 0.75rem;
+    }
+
+    .comments-section-2008 textarea {
+        min-height: 60px;
+    }
+
+    .format-tooltip {
+        left: auto;
+        right: 0;
+        transform: none;
+    }
+
+    .format-tooltip::before,
+    .format-tooltip::after {
+        left: auto;
+        right: 8px;
+        transform: none;
+    }
+
+    .reply-form {
+        margin-left: 1rem;
+    }
+
+    .replies-container {
+        margin-left: 1rem !important;
+    }
+
+    .video-controls {
+        padding: 0.5rem;
+    }
+
+    .right-controls {
+        gap: 0.5rem;
+    }
+
+    .rating-section .flex.items-center.gap-4 {
+        gap: 1rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem;
+    }
+
+    .views-info {
+        flex-wrap: wrap;
+    }
+
+    .related-videos .group {
+        padding: 0.5rem;
+    }
+
+    .related-videos .flex.gap-3 {
+        gap: 0.75rem;
+    }
+
+    .edit-comment-modal {
+        width: 90%;
+        margin: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .control-btn {
+        min-width: 32px;
+        min-height: 32px;
+        padding: 6px;
+    }
+
+    .time-display {
+        font-size: 11px;
+        margin: 0 4px;
+    }
+
+    .speed-menu {
+        min-width: 100px;
+    }
+
+    .speed-menu button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.querySelector('video');
+    const videoContainer = document.querySelector('.video-container');
+    const controls = document.querySelector('.video-controls');
+
+    if (!video || !videoContainer || !controls) return;
+
+    let tapCount = 0;
+    let lastTapTime = 0;
+
+    const leftOverlay = document.createElement('div');
+    leftOverlay.className = 'double-tap-overlay left';
+    leftOverlay.innerHTML = '<i class="fas fa-backward-step"></i>';
+
+    const rightOverlay = document.createElement('div');
+    rightOverlay.className = 'double-tap-overlay right';
+    rightOverlay.innerHTML = '<i class="fas fa-forward-step"></i>';
+
+    videoContainer.appendChild(leftOverlay);
+    videoContainer.appendChild(rightOverlay);
+
+    videoContainer.addEventListener('touchstart', function(e) {
+        const currentTime = new Date().getTime();
+        const tapGap = currentTime - lastTapTime;
+        const touch = e.touches[0];
+        const x = touch.clientX - videoContainer.getBoundingClientRect().left;
+        const width = videoContainer.offsetWidth;
+
+        if (tapGap < 300) { 
+            if (x < width * 0.3) { 
+                video.currentTime = Math.max(0, video.currentTime - 10);
+                showOverlay(leftOverlay);
+            } else if (x > width * 0.7) { 
+                video.currentTime = Math.min(video.duration, video.currentTime + 10);
+                showOverlay(rightOverlay);
+            }
+        }
+
+        lastTapTime = currentTime;
+    });
+
+    function showOverlay(overlay) {
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '1';
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }, 500);
+    }
+
+    let controlsTimeout;
+
+    videoContainer.addEventListener('touchstart', () => {
+        controls.style.opacity = '1';
+        clearTimeout(controlsTimeout);
+    });
+
+    videoContainer.addEventListener('touchend', () => {
+        if (!video.paused) {
+            controlsTimeout = setTimeout(() => {
+                controls.style.opacity = '0';
+            }, 3000);
+        }
+    });
+
+    function adjustVideoHeight() {
+        if (window.innerWidth <= 768) {
+            const width = videoContainer.offsetWidth;
+            const height = width * (9/16);
+            videoContainer.style.height = `${height}px`;
+        } else {
+            videoContainer.style.height = 'auto';
+        }
+    }
+
+    window.addEventListener('resize', adjustVideoHeight);
+    adjustVideoHeight();
+
+    const volumeContainer = document.querySelector('.volume-container');
+    if (volumeContainer) {
+        if (window.innerWidth <= 768) {
+            volumeContainer.style.display = 'none';
+        }
+    }
+});
+</script>
+
+<script>
+document.addEventListener('click', async function(e) {
+    if (e.target.classList.contains('delete-comment-btn')) {
+        if (!confirm('Bu yorumu silmek istediğinizden emin misiniz?')) {
+            return;
+        }
+
+        const commentId = e.target.dataset.commentId;
+        const commentElement = document.getElementById(`comment-${commentId}`);
+
+        try {
+            const response = await fetch(`/api/comments/${commentId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                commentElement.remove();
+            } else {
+                alert(data.error || 'Yorum silinirken bir hata oluştu');
+            }
+        } catch (error) {
+            console.error('Hata:', error);
+            alert('Yorum silinirken bir hata oluştu');
+        }
+    }
+});
+</script>
+
+{% endblock %}

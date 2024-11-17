@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Arkadaşlık İstekleri</h2>
+{% if requests %}
+    <ul>
+    {% for request in requests %}
+        <li>
+            {{ request.user.username }} size arkadaşlık isteği gönderdi.
+            <form action="{{ url_for('accept_friend_request', user_id=request.user.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-success">Kabul Et</button>
+            </form>
+            <form action="{{ url_for('reject_friend_request', user_id=request.user.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Reddet</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Şu anda bekleyen arkadaşlık isteği bulunmamaktadır.</p>
+{% endif %}
+{% endblock %}

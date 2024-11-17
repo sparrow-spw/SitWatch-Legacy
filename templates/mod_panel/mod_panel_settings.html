@@ -1,0 +1,201 @@
+{% extends 'mod_panel/mod_panel_base.html' %}
+
+{% block panel_title %}Raporlar{% endblock %}
+
+{% block panel_content %}
+        <!-- Content Area -->
+        <div class="p-6 space-y-6">
+            <!-- Site Durumu -->
+            <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+                <h2 class="text-[16px] font-bold text-[#333] mb-4">Site Durumu</h2>
+                
+                <form id="statusForm" class="space-y-4">
+                    <div class="flex flex-col space-y-2">
+                        <label class="text-[12px] text-[#666]">Durum Metni</label>
+                        <input type="text" 
+                               name="text" 
+                               value="{{ site_settings.status_text if site_settings else '' }}"
+                               placeholder="Örn: Bakım çalışması devam ediyor..." 
+                               class="w-full px-3 py-2 text-[13px] border border-[#e8e8e8] rounded focus:outline-none focus:border-[#167ac6]">
+                    </div>
+                    
+                    <div class="flex flex-col space-y-2">
+                        <label class="text-[12px] text-[#666]">Renk</label>
+                        <input type="color" 
+                               name="color" 
+                               value="{{ site_settings.status_color if site_settings else '#000000' }}"
+                               class="h-[38px] w-[100px] px-1 border border-[#e8e8e8] rounded cursor-pointer">
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-[#167ac6] text-white text-[13px] rounded hover:bg-[#2793e6]">
+                            Güncelle
+                        </button>
+                        
+                        {% if site_settings and site_settings.status_text %}
+                        <button type="button" 
+                                onclick="removeStatus()"
+                                class="px-4 py-2 bg-red-500 text-white text-[13px] rounded hover:bg-red-600">
+                            Kaldır
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                {% if site_settings and site_settings.status_text %}
+                <div class="mt-4 p-3 rounded" style="background-color: {{ site_settings.status_color }}20">
+                    <div class="text-[13px]" style="color: {{ site_settings.status_color }}">
+                        Önizleme: {{ site_settings.status_text }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Site Kontrolleri -->
+            <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+                <h2 class="text-[16px] font-bold text-[#333] mb-4">Site Kontrolleri</h2>
+                
+                <div class="space-y-4">
+                    <!-- Bakım Modu -->
+                    <div class="flex items-center justify-between p-3 bg-white rounded border border-[#e8e8e8]">
+                        <div>
+                            <div class="font-medium text-[14px]">Bakım Modu</div>
+                            <div class="text-[12px] text-[#666]">Site bakım moduna alınır ve sadece adminler giriş yapabilir</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[12px] {{ 'text-green-600' if not maintenance_mode else 'text-red-600' }}">
+                                {{ 'Kapalı' if not maintenance_mode else 'Açık' }}
+                            </span>
+                            <button onclick="toggleMaintenance()" 
+                                    class="px-4 py-2 text-[13px] rounded 
+                                    {{ 'bg-red-500 hover:bg-red-600' if not maintenance_mode else 'bg-green-500 hover:bg-green-600' }} 
+                                    text-white">
+                                {{ 'Aç' if not maintenance_mode else 'Kapat' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video Yükleme -->
+                    <div class="flex items-center justify-between p-3 bg-white rounded border border-[#e8e8e8]">
+                        <div>
+                            <div class="font-medium text-[14px]">Video Yükleme</div>
+                            <div class="text-[12px] text-[#666]">Kullanıcıların video yükleme özelliğini kontrol eder</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[12px] {{ 'text-green-600' if video_uploads_enabled else 'text-red-600' }}">
+                                {{ 'Açık' if video_uploads_enabled else 'Kapalı' }}
+                            </span>
+                            <button onclick="toggleVideoUploads()" 
+                                    class="px-4 py-2 text-[13px] rounded 
+                                    {{ 'bg-red-500 hover:bg-red-600' if video_uploads_enabled else 'bg-green-500 hover:bg-green-600' }} 
+                                    text-white">
+                                {{ 'Kapat' if video_uploads_enabled else 'Aç' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ban Sayfası Önizleme -->
+                    <div class="flex items-center justify-between p-3 bg-white rounded border border-[#e8e8e8]">
+                        <div>
+                            <div class="font-medium text-[14px]">Ban Sayfası Önizleme</div>
+                            <div class="text-[12px] text-[#666]">Ban sayfasının nasıl göründüğünü kontrol edin</div>
+                        </div>
+                        <button onclick="previewBanPage()" 
+                                class="px-4 py-2 bg-[#167ac6] text-white text-[13px] rounded hover:bg-[#2793e6]">
+                            Önizle
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Status form işlemleri
+document.getElementById('statusForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/mod_panel/update_status', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+});
+
+function removeStatus() {
+    if (confirm('Site durumunu kaldırmak istediğinizden emin misiniz?')) {
+        fetch('/mod_panel/remove_status', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+    }
+}
+
+// Site kontrolleri
+function toggleMaintenance() {
+    fetch('/mod_panel/toggle_maintenance', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+}
+
+function toggleVideoUploads() {
+    fetch('/mod_panel/toggle_video_uploads', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+        }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        alert('İşlem sırasında bir hata oluştu');
+    });
+}
+
+function previewBanPage() {
+    window.open('{{ url_for("banned") }}?preview=true', '_blank');
+}
+</script>
+{% endblock %} 

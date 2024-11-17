@@ -1,0 +1,136 @@
+.api-section {
+    margin-bottom: 2rem;
+}
+
+.endpoint {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.endpoint-method {
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+.endpoint-path {
+    font-family: monospace;
+    background-color: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 2px;
+}
+
+.parameter-table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.parameter-table th,
+.parameter-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.response-example {
+    background-color: #272822;
+    color: #f8f8f2;
+    padding: 1rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Sidebar stilleri */
+.sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+/* Method badge stilleri */
+.method-badge {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Kod blokları için stiller */
+pre {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+pre code {
+    font-family: 'Fira Code', monospace;
+}
+
+/* Endpoint başlıkları için stiller */
+.card-header h3 {
+    font-size: 1.2rem;
+    font-family: monospace;
+    margin: 0;
+}
+
+/* Tablo stilleri */
+.table {
+    font-size: 0.9rem;
+}
+
+/* İkon stilleri */
+.list-group-item i {
+    width: 20px;
+    text-align: center;
+    margin-right: 8px;
+}
+
+/* Sticky sidebar için medya sorgusu */
+@media (max-width: 768px) {
+    .sidebar {
+        position: static;
+    }
+}
+/* Sidebar stilleri */
+.sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+/* Method badge stilleri */
+.method-badge {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Kod blokları için stiller */
+pre {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid #e9ecef;
+}
+
+pre code {
+    font-family: Consolas, 'Courier New', monospace;  /* Windows varsayılan monospace fontu */
+}
+
+/* Endpoint başlıkları için stiller */
+.card-header h3 {
+    font-size: 1.2rem;
+    font-family: Consolas, 'Courier New', monospace;
+    margin: 0;
+}
+
+/* İkon stilleri */
+.list-group-item i {
+    width: 20px;
+    text-align: center;
+    margin-right: 8px;
+}
+
+/* Responsive düzenlemeler */
+@media (max-width: 768px) {
+    .sidebar {
+        position: static;
+    }
+}

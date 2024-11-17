@@ -1,0 +1,257 @@
+{% extends "api/layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        
+        <div class="col-md-3">
+            <div class="sidebar sticky-top">
+                <div class="list-group">
+                    <a href="#genel-bakis" class="list-group-item list-group-item-action">
+                        <i class="fas fa-home"></i> Genel Bakış
+                    </a>
+                    <a href="#kimlik-dogrulama" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key"></i> Kimlik Doğrulama
+                    </a>
+                    <a href="#video-actions" class="list-group-item list-group-item-action">
+                        <i class="fas fa-video"></i> Video İşlemleri
+                    </a>
+                    <a href="#comment-actions" class="list-group-item list-group-item-action">
+                        <i class="fas fa-comments"></i> Yorum İşlemleri
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action">
+                        <i class="fas fa-bell"></i> Bildirimler
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-md-9">
+            <section id="genel-bakis" class="mb-5">
+                <h1>API Dokümantasyonu</h1>
+                <p class="lead">Bu API dokümantasyonu, platformumuzun tüm endpoint'lerini ve kullanım şekillerini detaylı olarak açıklar.</p>
+                
+                <div class="alert alert-info">
+                    <h4>Önemli Notlar</h4>
+                    <ul>
+                        <li>Tüm istekler HTTPS üzerinden yapılmalıdır</li>
+                        <li>API rate limit: 100 istek/dakika</li>
+                        <li>Maksimum dosya yükleme boyutu: 500MB</li>
+                        <li>Tüm yanıtlar JSON formatındadır</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-warning">
+                    <h4>Rate Limiting</h4>
+                    <p>API endpoint'leri aşağıdaki limitlerle korunmaktadır:</p>
+                    <ul>
+                        <li>Video Etkileşimleri: {{ rate_limits.video_action }}</li>
+                        <li>Yorum Ekleme: {{ rate_limits.add_comment }}</li>
+                        <li>Yorum Düzenleme: {{ rate_limits.edit_comment }}</li>
+                        <li>Yorum Silme: {{ rate_limits.delete_comment }}</li>
+                        <li>Bildirim Kontrolü: {{ rate_limits.get_notifications }}</li>
+                        <li>Bildirim İşaretleme: {{ rate_limits.mark_notifications }}</li>
+                    </ul>
+                    <p>Bu limitleri aşmanız durumunda 429 Too Many Requests hatası alırsınız.</p>
+                </div>
+            </section>
+
+            <section id="kimlik-dogrulama" class="mb-5">
+                <h2>Kimlik Doğrulama</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4>Oturum Başlatma</h4>
+                        <p>API'yi kullanmak için önce oturum açmanız gerekir:</p>
+
+                        <div class="endpoint-info">
+                            <span class="badge bg-primary">POST</span>
+                            <code>/login</code>
+                        </div>
+
+                        <h5>İstek Parametreleri:</h5>
+                        <pre><code class="language-json">{
+    "username": "string",
+    "password": "string",
+    "cf-turnstile-response": "string" // Cloudflare Turnstile token
+}</code></pre>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">{
+    "success": true,
+    "session_token": "eyJhbGciOiJIUzI1NiIs...",
+    "user": {
+        "id": 1,
+        "username": "username",
+        "is_admin": false
+    }
+}</code></pre>
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-info-circle"></i> Session token'ı tüm isteklerde cookie olarak otomatik gönderilir.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="video-actions" class="mb-5">
+                <h2>Video İşlemleri</h2>
+                
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span class="badge bg-success float-end">POST</span>
+                        <span class="badge bg-warning float-end me-2">{{ rate_limits.video_action }}</span>
+                        <h3 class="mb-0">/upload</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Video Yükleme</h4>
+                        <p>Yeni video yüklemek için kullanılır.</p>
+
+                        <h5>Form Verileri:</h5>
+                        <pre><code class="language-json">{
+    "video": "file", // MP4, AVI, MOV, MKV (max 500MB)
+    "title": "string",
+    "description": "string",
+    "thumbnail": "file" // Opsiyonel, JPG/PNG
+}</code></pre>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">{
+    "success": true,
+    "message": "Video başarıyla yüklendi",
+    "redirect": "/watch/123"
+}</code></pre>
+                    </div>
+                </div>
+
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span class="badge bg-success float-end">POST</span>
+                        <span class="badge bg-warning float-end me-2">{{ rate_limits.video_action }}</span>
+                        <h3 class="mb-0">/api/video/{video_id}/action</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Video Etkileşimleri</h4>
+                        <p>Video beğeni, orta beğeni veya beğenmeme işlemleri için kullanılır.</p>
+
+                        <h5>İstek Gövdesi:</h5>
+                        <pre><code class="language-json">{
+    "action": "string" // "like", "mid-like", "dislike"
+}</code></pre>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">{
+    "success": true,
+    "likes": 10,
+    "mid_likes": 5,
+    "dislikes": 2,
+    "current_action": "like"
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="comment-actions" class="mb-5">
+                <h2>Yorum İşlemleri</h2>
+                
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span class="badge bg-success float-end">POST</span>
+                        <span class="badge bg-warning float-end me-2">{{ rate_limits.add_comment }}</span>
+                        <h3 class="mb-0">/api/comments/{video_id}/add</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Yorum Ekleme</h4>
+
+                        <h5>İstek Gövdesi:</h5>
+                        <pre><code class="language-json">{
+    "content": "string",
+    "cf-turnstile-response": "string"
+}</code></pre>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">{
+    "success": true,
+    "comment": {
+        "content": "string",
+        "username": "string",
+        "user_avatar": "string",
+        "created_at": "string"
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span class="badge bg-primary float-end">POST</span>
+                        <span class="badge bg-warning float-end me-2">{{ rate_limits.edit_comment }}</span>
+                        <h3 class="mb-0">/api/comments/{comment_id}/edit</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Yorum Düzenleme</h4>
+
+                        <h5>İstek Gövdesi:</h5>
+                        <pre><code class="language-json">{
+    "content": "string"
+}</code></pre>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">{
+    "success": true
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="notifications" class="mb-5">
+                <h2>Bildirimler</h2>
+                
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span class="badge bg-info float-end">GET</span>
+                        <span class="badge bg-warning float-end me-2">{{ rate_limits.get_notifications }}</span>
+                        <h3 class="mb-0">/get_notifications</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Bildirimleri Getirme</h4>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">[{
+    "id": 1,
+    "message": "string",
+    "type": "string",
+    "time_ago": "string",
+    "sender_image": "string",
+    "sender_username": "string",
+    "link": "string"
+}]</code></pre>
+                    </div>
+                </div>
+
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span class="badge bg-success float-end">POST</span>
+                        <span class="badge bg-warning float-end me-2">{{ rate_limits.mark_notifications }}</span>
+                        <h3 class="mb-0">/mark_all_notifications_read</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Tüm Bildirimleri Okundu İşaretle</h4>
+
+                        <h5>Başarılı Yanıt:</h5>
+                        <pre><code class="language-json">{
+    "success": true
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
