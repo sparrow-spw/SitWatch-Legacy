@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/mainpage.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    <title>SitWatch - Maintenance</title>
+    <title>{{ site_name }} - Maintenance</title>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8545390053950856"
      crossorigin="anonymous"></script>
     <style>
@@ -111,7 +111,7 @@
     </style>
 </head>
 <body>
-    <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="SitWatch Logo" class="logo">
+    <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="{{ site_name }} Logo" class="logo">
     <div class="message">
         <h1>Harika geliştirmeler yapıyoruz!</h1>
         <p>Takipte kalın!</p>

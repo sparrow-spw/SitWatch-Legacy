@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session, jsonify, send_from_directory, abort
+from flask import Flask, request, render_template, redirect, url_for, flash, session, jsonify, send_from_directory, abort, current_app
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 import os
 import sqlite3
@@ -64,15 +64,13 @@ FINAL_UPLOAD_FOLDER = os.path.join('static', 'uploads', 'videos')
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024  
 app.config['MAX_CONTENT_PATH'] = None
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SECRET_KEY'] = "GIZLI-ANAHTAR"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-app.config['SQLALCHEMY_POOL_SIZE'] = 10
-app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30
-app.config['SQLALCHEMY_POOL_RECYCLE'] = 1800
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'videos')
 app.config['THUMBNAIL_FOLDER'] = os.path.join('static','uploads', 'videos', 'thumbnails')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
-app.config['SERVER_NAME'] = 'localhost:5000' # eğer domaininizde çalışıyorsanız burayı değiştirin
+app.config['SERVER_NAME'] = 'localhost:3000' # eğer domaininizde çalışıyorsanız burayı değiştirin
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -91,7 +89,7 @@ limiter = Limiter(
     app=app,
     key_func=get_remote_address,  
     storage_uri="memory://", 
-    default_limits=["500 per day", "100 per hour"],
+    default_limits=["10000 per day"],
     storage_options={"queue_size": 5}  
 )
 
@@ -99,7 +97,7 @@ active_visitors = set()
 
 active_visitors_last_seen = {}
 
-DISCORD_WEBHOOK_URL = os.environ.get('DISCORD_WEBHOOK_URL')
+DISCORD_WEBHOOK_URL = "DISCORD-WEBHOOK-URL"
 
 class SSLRedirect:
     def __init__(self, app):
@@ -875,8 +873,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email'].lower()
-        password = request.form['password']
-        token = request.form.get('cf-turnstile-response')
+        password = request.form.get('password')
 
         if len(username) > 32:
             flash('Kullanıcı adı 32 karakterden uzun olamaz.', 'error')
@@ -902,39 +899,28 @@ def register():
             flash('Bu e-posta adresi zaten kayıtlı.', 'error')
             return redirect(url_for('register'))
 
-        secret_key = 'gizli_anahtarınız'  # Cloudflare Turnstile secret key'i değiştirilmeli
-        response = requests.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', data={
-            'secret': secret_key,
-            'response': token,
-        })
+        user = User(
+            username=username, 
+            email=email,
+            profile_image='default.jpg'
+        )
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
 
-        result = response.json()
-        if result['success']:
-            user = User(
-                username=username, 
-                email=email,
-                profile_image='default.jpg'
-            )
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
+        default_channels = User.query.filter(User.id.in_([1, 2])).all()
+        for channel in default_channels:
+            if channel:
+                subscription = Subscription(
+                    subscriber_id=user.id,
+                    subscribed_to_id=channel.id
+                )
+                db.session.add(subscription)
 
-            default_channels = User.query.filter(User.id.in_([1, 2])).all()
-            for channel in default_channels:
-                if channel:
-                    subscription = Subscription(
-                        subscriber_id=user.id,
-                        subscribed_to_id=channel.id
-                    )
-                    db.session.add(subscription)
+        db.session.commit()
 
-            db.session.commit()
-
-            flash('Kayıt başarılı. Lütfen giriş yapın.', 'success')
-            return redirect(url_for('login'))
-        else:
-            flash('Robot doğrulaması başarısız oldu. Lütfen tekrar deneyin.', 'error')
-            return redirect(url_for('register'))
+        flash('Kayıt başarılı. Lütfen giriş yapın.', 'success')
+        return redirect(url_for('login'))
 
     return render_template('register.html')
 
@@ -974,28 +960,22 @@ def logout():
 @app.route('/profile/<username>')
 def profile(username):
     user = User.query.filter_by(username=username).first_or_404()
-
     page = request.args.get('page', 1, type=int)
-    videos = Video.query.filter_by(user_id=user.id)\
-        .order_by(Video.upload_date.desc())\
-        .paginate(page=page, per_page=12)
-
-    user.channel_views = sum(video.views for video in videos.items)
-    user.total_upload_views = sum(video.views for video in videos.items)
-
-    if not user.date_joined:
-        user.date_joined = datetime.utcnow()
-
-    user.last_login = datetime.utcnow()
-
-    db.session.commit()
-
-    return render_template('profile.html', 
-        user=user, 
-        videos=videos,
-        subscriber_count=user.subscribers.count(),
-        is_banned=user.is_banned
-    )
+    
+    # Eski sorgu
+    # videos = Video.query.filter_by(user_id=user.id).paginate(page=page, per_page=12)
+    
+    # Yeni sorgu
+    per_page = 12
+    videos = Video.query.filter_by(user_id=user.id).paginate(page=page, per_page=per_page)
+    
+    return render_template('profile.html',
+                         user=user,
+                         videos=videos,
+                         current_page=page,
+                         total_pages=videos.pages,
+                         prev_page=page-1 if page > 1 else None,
+                         next_page=page+1 if page < videos.pages else None)
 
 def save_profile_image(file, user_id):
     if file and file.filename:
@@ -1236,6 +1216,9 @@ def get_online_users():
 @limiter.limit("10 per minute")
 @login_required
 def add_comment(video_id):
+    if current_app.config['settings']['disable-comments']:
+        abort(403, "Yorum özelliği geçici olarak devre dışı")
+    
     try:
         content = request.form.get('content')
         if not content:
@@ -2125,7 +2108,7 @@ def create_founder_accounts():
                 is_banned=False,
                 ban_end_date=None
             )
-            sparrow.set_password('bu_şifreyi_değiştirin')
+            sparrow.set_password('')
             db.session.add(sparrow)
 
         db.session.commit()
@@ -3426,7 +3409,66 @@ def mod_panel_server():
                          active_tab='server',
                          current_time=datetime.utcnow())
 
+def initialize_database():
+    """Veritabanını ve tabloları oluşturur, kurucu hesabı ekler"""
+    with app.app_context():
+        db.create_all()
+        
+        # Varsayılan site ayarlarını ekle
+        if not SiteSettings.query.first():
+            default_settings = SiteSettings()
+            db.session.add(default_settings)
+            db.session.commit()
+        
+        # Config'den admin bilgilerini al
+        admin_config = current_app.config.get('admin-account', {})
+        
+        # Admin hesabını oluştur/güncelle
+        admin = User.query.filter_by(username=admin_config.get('username', 'admin')).first()
+        if not admin:
+            admin = User(
+                username=admin_config.get('username', 'admin'),
+                email=admin_config.get('email', 'admin@example.com'),
+                is_founder=True,
+                is_admin=True
+            )
+            admin.set_password(admin_config.get('password', 'admin'))
+            db.session.add(admin)
+            db.session.commit()
+        else:
+            # Şifre güncelleme
+            if not admin.check_password(admin_config.get('password', 'admin')):
+                admin.set_password(admin_config.get('password', 'admin'))
+                db.session.commit()
+        
+        print("Veritabanı başarıyla oluşturuldu ve kurucu hesap eklendi")
+
+# Uygulama başlangıcında veritabanını başlat
+initialize_database()
+
+# Config dosyasını yükle
+with open('config.json') as f:
+    app.config.update(json.load(f))
+    
+# Varsayılan değerleri ayarla
+app.config.setdefault('logo-image', 'images/logo2.png')
+app.config.setdefault('favicon-image', 'images/favicon2.ico')
+
+# Tüm template'lere site_name değişkenini ekle
+@app.context_processor
+def inject_site_name():
+    return dict(site_name=app.config.get("site-name", "Video Platformu"))
+
+@app.context_processor
+def inject_config():
+    return {
+        'site_name': app.config.get("site-name", "Video Platformu"),
+        'config': app.config  # Tüm config'i template'lere aktar
+    }
+
+
 if __name__ == '__main__':
+    initialize_database()
     app.run(
         host='localhost',
         port=3000,

@@ -331,6 +331,24 @@
     </div>
 </div>
 
+<div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+    <h3 class="text-[16px] font-bold mb-4">Admin Hesap Yönetimi</h3>
+    <div class="space-y-2">
+        <div class="flex items-center justify-between p-2 bg-white rounded border">
+            <span class="text-[13px]">Kullanıcı Adı</span>
+            <span class="text-[12px] text-[#666]">{{ config['admin-account']['username'] }}</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-white rounded border">
+            <span class="text-[13px]">E-posta</span>
+            <span class="text-[12px] text-[#666]">{{ config['admin-account']['email'] }}</span>
+        </div>
+        <button onclick="resetAdminPassword()" 
+                class="w-full px-4 py-2 bg-red-500 text-white text-[13px] rounded hover:bg-red-600">
+            Şifreyi Config'e Göre Sıfırla
+        </button>
+    </div>
+</div>
+
 <script>
 let currentUserId = null;
 
@@ -697,6 +715,26 @@ function showRelatedAccounts(ip) {
 
 function closeRelatedAccountsModal() {
     document.getElementById('relatedAccountsModal').style.display = 'none';
+}
+
+function resetAdminPassword() {
+    if (confirm('Admin hesabının şifresini config'e göre sıfırlamak istediğinizden emin misiniz?')) {
+        fetch('/mod_panel/reset_admin_password', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Admin hesabının şifresi başarıyla sıfırlandı!');
+            } else {
+                alert('Hata: ' + (data.error || 'Bilinmeyen bir hata oluştu'));
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('İşlem sırasında bir hata oluştu');
+        });
+    }
 }
 </script>
 {% endblock %}

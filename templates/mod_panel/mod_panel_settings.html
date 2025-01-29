@@ -108,6 +108,31 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Özellik Yönetimi -->
+            <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+                <h3 class="text-[16px] font-bold mb-4">Özellik Yönetimi</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    {% for category in config %}
+                    {% if category != "site-name" and category != "admin-account" %}
+                    <div class="bg-[#f8f8f8] border border-[#e8e8e8] rounded-lg p-4">
+                        <h3 class="text-[16px] font-bold mb-4">{{ category|title }}</h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            {% for key, value in config[category].items() %}
+                            <div class="flex items-center justify-between p-2 bg-white rounded border">
+                                <span class="text-[13px]">{{ key|replace('-', ' ')|title }}</span>
+                                <span class="text-[12px] {% if value %}text-red-500{% else %}text-green-500{% endif %}">
+                                    {{ "Açık" if value else "Kapalı" }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -273,6 +273,12 @@
     transform: scale(0.95);
     transition: opacity 300ms, transform 300ms;
 }
+
+{% if config['settings']['disable-downloads'] %}
+<style>
+    .download-button { display: none; }
+</style>
+{% endif %}
 </style>
 
 <!-- Progress Bar Modal -->

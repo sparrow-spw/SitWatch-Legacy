@@ -1,0 +1,22 @@
+{
+    "site-name": "Video Platformu",
+    "logo-image": "images/logo2.png",
+    "favicon-image": "images/favicon2.ico",
+    "support-mail": "support@example.com",
+    "settings": {
+        "header-alignment": "left",
+        "disable-notifications": false,
+        "disable-comments": false,
+        "disable-likes": false,
+        "disable-midlikes": false,
+        "disable-dislikes": false,
+        "disable-views": false,
+        "disable-shares": false,
+        "disable-downloads": false
+    },
+    "admin-account": {
+        "username": "admin",
+        "password": "admin",
+        "email": "admin@example.com"
+    }
+}

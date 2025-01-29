@@ -4,7 +4,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}SitWatch{% endblock %}</title>
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/mainpage.css') }}">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8545390053950856"
      crossorigin="anonymous"></script>
@@ -12,15 +12,15 @@
      crossorigin="anonymous"></script>
     {% block extra_css %}{% endblock %}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon2.ico') }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon2.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename=config['favicon-image']) }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename=config['favicon-image']) }}">
     {% block meta_tags %}
     <meta property="og:title" content="SitWatch">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request.url }}">
     <meta property="og:image" content="{{ url_for('static', filename='images/logo2.png', _external=True) }}">
     <meta property="og:description" content="Video sharing platform">
-    <meta property="og:site_name" content="SitWatch">
+    <meta property="og:site_name" content="{{ site_name }}">
     {% endblock %}
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -226,12 +226,18 @@
 
     <header style="height: 40px;" class="bg-white border-b border-[#e8e8e8] fixed w-full top-0 z-50">
         <div class="w-full h-[45px] px-2 md:px-4">
-            <div class="grid grid-cols-12 items-center h-full">
+            <div class="grid grid-cols-12 items-center h-full {% if config['settings']['header-alignment'] == 'left' %}flex-row-reverse{% endif %}">
 
                 <div class="col-span-8 md:col-span-3 pl-0 flex justify-between items-center">
                     <div class="flex items-center">
                         <a href="{{ url_for('index') }}" class="flex items-center mr-2 md:mr-4">
-                            <img class="h-[30px] md:h-[40px] w-auto object-contain" src="{{ url_for('static', filename='images/logo2.png') }}" alt="SitWatch Logo">
+                            {% if config['logo-image'] %}
+                            <img class="h-[30px] md:h-[40px] w-auto object-contain" 
+                                 src="{{ url_for('static', filename=config['logo-image']) }}" 
+                                 alt="{{ site_name }} Logo">
+                            {% else %}
+                            <span class="text-xl font-bold text-[#167dd1]">{{ site_name }}</span>
+                            {% endif %}
                         </a>
 
                         <div class="hidden md:flex items-center space-x-1 h-full">
@@ -243,10 +249,7 @@
                                class="px-3 text-[12px] flex items-center h-full {% if request.endpoint == 'videos' %}bg-[#e8e8e8] font-bold{% endif %} hover:bg-[#e8e8e8]">
                                 Videolar
                             </a>
-                            <a href="{{ url_for('community') }}" 
-                               class="px-3 text-[12px] flex items-center h-full {% if request.endpoint == 'community' %}bg-[#e8e8e8] font-bold{% endif %} hover:bg-[#e8e8e8]">
-                                Topluluk
-                            </a>
+
                         </div>
                     </div>
                 </div>
@@ -276,7 +279,7 @@
                     </form>
                 </div>
 
-                <div class="hidden md:flex col-span-3 justify-end pr-0">
+                <div class="hidden md:flex col-span-3 justify-{{ 'end' if config['settings']['header-alignment'] == 'left' else 'start' }} pl-0">
                     <div class="flex items-center space-x-2">
                         {% if current_user.is_authenticated %}
                             {% if current_user.is_admin %}
@@ -292,7 +295,7 @@
                             </a>
 
                             <div class="relative">
-                                <button id="notifications-button" class="h-[24px] px-2 bg-[#f8f8f8] border border-[#ccc] text-[12px] hover:bg-[#f0f0f0] flex items-center">
+                                <button id="notifications-button" class="h-[24px] px-2 bg-[#f8f8f8] border border-[#ccc] text-[12px] hover:bg-[#f0f0f0] flex items-center {% if config['settings']['disable-notifications'] %}opacity-50 cursor-not-allowed{% endif %}" {% if config['settings']['disable-notifications'] %}disabled{% endif %}>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                                     </svg>
@@ -428,12 +431,6 @@
                             </svg>
                             Videolar
                         </a>
-                        <a href="{{ url_for('community') }}" class="flex items-center px-4 py-2.5 text-[13px] hover:bg-gray-50">
-                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                            Topluluk
-                        </a>
                         <a href="{{ url_for('settings') }}" class="flex items-center px-4 py-2.5 text-[13px] hover:bg-gray-50">
                             <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -477,13 +474,6 @@
                 </svg>
                 Videolar
             </a>
-            <a href="{{ url_for('community') }}" 
-               class="w-full px-4 py-2.5 bg-gray-100 rounded text-[14px] flex items-center {% if request.endpoint == 'community' %}bg-gray-200 font-medium{% endif %}">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                Topluluk
-            </a>
             <a href="{{ url_for('upload') }}" 
                class="w-full px-4 py-2.5 bg-gray-100 rounded text-[14px] flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -514,7 +504,7 @@
                 </div>
                 <div class="space-y-1">
                     <h3 class="text-[14px] font-bold text-[#333] mb-2">İletişim</h3>
-                    <a href="mailto:sparrow99biz@gmail.com" class="block text-[12px] text-[#666] hover:text-[#167dd1]">sparrow99biz@gmail.com</a>
+                    <a href="mailto:{{ config['support-mail'] }}" class="block text-[12px] text-[#666] hover:text-[#167dd1]">{{ config['support-mail'] }}</a>
                     <a href="https://discord.gg/tJgbgF7fYH" target="_blank" class="block text-[12px] text-[#666] hover:text-[#167dd1]">Discord</a>
                 </div>
             </div>
@@ -523,7 +513,7 @@
                     Aktif Ziyaretçi: <span id="visitor-count">{{ active_visitors }}</span>
                 </p>
                 <p class="text-[11px] text-[#666]">
-                    &copy; 2024 SitWatch. Tüm hakları saklıdır.
+                    &copy; 2024 {{ site_name }}. Tüm hakları saklıdır.
                 </p>
             </div>
         </div>
@@ -596,7 +586,5 @@
         });
     });
     </script>
-</body>
-</html>
 </body>
 </html>

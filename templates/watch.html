@@ -17,7 +17,7 @@
 
 <link rel="stylesheet" href="https://cdn.tailwindcss.com">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/watch.css') }}">
+
 
 <script>
     const videoId = "{{ video.id }}";
@@ -44,9 +44,9 @@
 
 <script src="{{ url_for('static', filename='js/video-controls.js') }}" defer></script>
 
-<div class="video-page-container retro">
-    <div class="main-content" style="width: 70%;">
-        <div class="video-player-container mb-4">
+<div class="video-page-container max-w-7xl mx-auto px-4 py-6">
+    <div class="main-content w-full lg:w-3/4 pr-0 lg:pr-6">
+        <div class="video-player-container mb-4 aspect-video bg-black">
             <div class="video-container">
 
                 <div id="loading-spinner" class="video-loading-screen">
@@ -66,7 +66,7 @@
                     Tarayıcınız video etiketini desteklemiyor.
                 </video>
 
-                <div class="custom-video-controls">
+                <div class="custom-video-controls bg-gradient-to-t from-black/60 to-transparent p-4">
                     <div class="progress-bar">
                         <div class="progress"></div>
                         <div class="progress-knob"></div>
@@ -126,7 +126,7 @@
             </div>
         </div>
 
-        <div class="video-details-2008 bg-white border border-[#e8e8e8]">
+        <div class="video-details-2008 bg-white rounded-lg shadow-sm mt-4 p-4">
 
             <div class="p-4 border-b border-[#e8e8e8]">
                 <div class="flex justify-between items-start mb-3">
@@ -186,6 +186,7 @@
                     </div>
 
                     <div class="flex items-center gap-4 mt-4">
+                        {% if not config['settings']['disable-likes'] %}
                         <button class="action-btn {% if user_action == 'like' %}active{% endif %}" 
                                 data-action="like" 
                                 data-video-id="{{ video.id }}">
@@ -193,14 +194,18 @@
                             <span class="count button-like-count">{{ video.get_likes() }}</span>
                             <span class="text">Like</span>
                         </button>
+                        {% endif %}
 
+                        {% if not config['settings']['disable-midlikes'] %}
                         <button class="action-btn {% if user_action == 'mid-like' %}active{% endif %}" 
                                 data-action="mid-like" 
-                                data-video-id="{{ video.id }}">
-                            <i class="fa fa-thumbs-up" style="transform: rotate(90deg);"></i>
-                            <span class="count button-mid-like-count">{{ video.get_mid_likes() }}</span>
-                            <span class="text">Midlike</span>
+                                data-video-id="{{ video.id }}"
+                                onclick="handleVideoAction('mid-like')">
+                            <i class="fas fa-meh"></i>
+                            <span class="text">Mid</span>
+                            <span class="count">{{ video.mid_likes }}</span>
                         </button>
+                        {% endif %}
 
                         <button class="action-btn {% if user_action == 'dislike' %}active{% endif %}" 
                                 data-action="dislike" 
@@ -230,6 +235,7 @@
             </div>
         </div>
 
+        {% if not config['settings']['disable-comments'] %}
         <div class="comments-section-2008 bg-white border border-[#e8e8e8]">
             <div class="border-b border-[#e8e8e8] px-4 py-2">
                 <h3 class="text-[14px] font-bold text-[#333]">Yorumlar</h3>
@@ -513,8 +519,9 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
-    <div class="sidebar-2008" style="width: 30%;">
+    <div class="sidebar-2008 w-full lg:w-1/4 mt-6 lg:mt-0">
         <div class="uploader-info-2008 bg-white border border-[#e8e8e8] mb-4">
             <div class="h-[80px] md:h-[100px] bg-[#f1f1f1] relative">
                 {% if video.uploader.banner_image %}
@@ -998,215 +1005,142 @@ document.addEventListener('click', async function(e) {
 </div>
 
 <style>
-.video-page-container {
-    display: flex;
-    gap: 20px;
-    max-width: 1800px;
+/* Ana Çerçeve */
+.watch-container {
+    max-width: 1300px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-.main-content {
-    flex: 0 0 70%;
+/* Video Oynatıcı */
+.video-main {
+    flex: 1 1 70%;
+    min-width: 300px;
 }
 
-.sidebar-2008 {
-    flex: 0 0 30%;
-}
-
-@media (max-width: 1200px) {
-    .video-page-container {
-        flex-direction: column;
-    }
-
-    .main-content,
-    .sidebar-2008 {
-        width: 100%;
-    }
-}
-
-.speed-control {
+.video-wrapper {
     position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    background: #000;
 }
 
-.speed-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 5px 10px;
-}
-
-.speed-menu {
-    display: none;
+.video-player {
     position: absolute;
-    bottom: 100%;
-    right: 0;
-    background: rgba(28, 28, 28, 0.9);
-    border-radius: 4px;
-    padding: 5px 0;
-    margin-bottom: 5px;
-    min-width: 100px;
-    z-index: 1000;
-}
-
-.speed-menu button {
-    display: block;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 8px 15px;
-    border: none;
-    background: none;
-    color: white;
-    text-align: left;
-    cursor: pointer;
+    height: 100%;
 }
 
-.speed-menu button:hover {
-    background: rgba(255, 255, 255, 0.1);
+/* Video Detayları */
+.video-info {
+    background: #fff;
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
 }
 
-.speed-menu button.active {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.comment-text h1, .comment-text h2, .comment-text h3 {
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
+.video-title {
+    font-size: 20px;
+    margin: 0 0 10px 0;
     color: #333;
 }
 
-.comment-text li {
-    list-style-type: disc;
-    margin-left: 1.5rem;
-    margin-bottom: 0.25rem;
+.video-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 14px;
 }
 
+/* Yan Menü */
+.video-sidebar {
+    flex: 1 1 25%;
+    min-width: 280px;
+}
+
+.uploader-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+/* Yorumlar */
+.comments-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.comment {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Responsive Düzen */
 @media (max-width: 768px) {
-    .video-page-container {
+    .watch-container {
         flex-direction: column;
-        padding: 0;
     }
-
-    .main-content {
-        width: 100%;
-    }
-
-    .sidebar-2008 {
-        width: 100% !important;
-        margin-top: 1rem;
-    }
-
-    .video-details-2008 {
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-    }
-
-    .comments-section-2008 {
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-    }
-
-    .uploader-info-2008 {
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-    }
-
-    .video-details-2008 .flex.justify-between.items-start {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .video-details-2008 .flex.gap-2 {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .comments-section-2008 .flex.gap-3 {
-        gap: 0.75rem;
-    }
-
-    .comments-section-2008 textarea {
-        min-height: 60px;
-    }
-
-    .format-tooltip {
-        left: auto;
-        right: 0;
-        transform: none;
-    }
-
-    .format-tooltip::before,
-    .format-tooltip::after {
-        left: auto;
-        right: 8px;
-        transform: none;
-    }
-
-    .reply-form {
-        margin-left: 1rem;
-    }
-
-    .replies-container {
-        margin-left: 1rem !important;
-    }
-
-    .video-controls {
-        padding: 0.5rem;
-    }
-
-    .right-controls {
-        gap: 0.5rem;
-    }
-
-    .rating-section .flex.items-center.gap-4 {
-        gap: 1rem;
-    }
-
-    .action-btn {
-        padding: 0.5rem;
-    }
-
-    .views-info {
-        flex-wrap: wrap;
-    }
-
-    .related-videos .group {
-        padding: 0.5rem;
-    }
-
-    .related-videos .flex.gap-3 {
-        gap: 0.75rem;
-    }
-
-    .edit-comment-modal {
-        width: 90%;
-        margin: 1rem;
+    
+    .video-main,
+    .video-sidebar {
+        flex: 1 1 100%;
     }
 }
 
-@media (max-width: 480px) {
-    .control-btn {
-        min-width: 32px;
-        min-height: 32px;
-        padding: 6px;
-    }
+/* Video Kontrolleri */
+.video-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    color: white;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
 
-    .time-display {
-        font-size: 11px;
-        margin: 0 4px;
-    }
+.progress-bar {
+    flex: 1 1 100%;
+    height: 3px;
+    background: #444;
+    margin-bottom: 5px;
+}
 
-    .speed-menu {
-        min-width: 100px;
-    }
+.progress {
+    height: 100%;
+    background: #cc0000;
+}
 
-    .speed-menu button {
-        padding: 8px 12px;
-        font-size: 13px;
-    }
+.control-button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.time-display {
+    font-size: 12px;
+    margin: 0 10px;
+}
+
+.volume-slider {
+    width: 80px;
 }
 </style>
 
